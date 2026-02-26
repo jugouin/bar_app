@@ -12,6 +12,8 @@
 .swiftpm/
 migrate_working_dir/
 node_modules/
+serviceAccountKey.json
+.firebase.json
 
 # IntelliJ related
 *.iml
@@ -44,3 +46,25 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase
+firebase_options.dart
+google-services.json
+GoogleService-Info.plist
+
+# Flutter generated
+.flutter-plugins
+pubspec.lock
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner.xcworkspace/
+*.xcworkspace
+
+# Android
+android/.gradle/
+android/local.properties
+android/key.properties
