@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
               ),
 
               Text(
-                "Bonjour Amandine Delet ${FirebaseAuth.instance.currentUser!.displayName ?? ''}!",
+                "Bonjour ${FirebaseAuth.instance.currentUser!.displayName ?? ''}!",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: const Color(0xFF2D5478),
                 ),

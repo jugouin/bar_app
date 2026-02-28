@@ -165,28 +165,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: CircleAvatar(
                   radius: 45,
                   backgroundColor: const Color.fromARGB(255, 150, 201, 222),
-                  child: Text(
-                    (_user?.displayName?.isNotEmpty == true)
-                        ? _user!.displayName![0].toUpperCase()
-                        : '?',
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D5478),
-                    ),
-                  ),
+                  child: Icon(Icons.sailing, size: 40)
                 ),
               ),
 
               const SizedBox(height: 30),
 
               // Section Nom
-              _SectionTitle(title: "Nom d'affichage"),
+              _SectionTitle(title: "Nom"),
               const SizedBox(height: 10),
               _StyledTextField(
                 controller: _displayNameController,
-                label: "Nom d'affichage",
-                icon: Icons.person,
+                icon: Icons.person, label: '',
               ),
               const SizedBox(height: 10),
               _StyledButton(
@@ -202,9 +192,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 10),
               _StyledTextField(
                 controller: _emailController,
-                label: "Email",
                 icon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.emailAddress, label: '',
               ),
               const SizedBox(height: 10),
               _StyledTextField(
