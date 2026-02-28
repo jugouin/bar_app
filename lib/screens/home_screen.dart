@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bar_app/screens/qr_code_scanner_screen.dart';
 import 'package:bar_app/screens/settings_screen.dart';
+import 'package:bar_app/screens/orders_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,6 +11,13 @@ class HomeScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+    );
+  }
+
+  void _openOrders(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const OrdersScreen()),
     );
   }
 
@@ -66,7 +74,11 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _FooterButton(icon: Icons.home, label: "Accueil", onTap: () {}),
-                  _FooterButton(icon: Icons.receipt_long, label: "Commandes", onTap: () {}),
+                  _FooterButton(
+                    icon: Icons.receipt_long,
+                    label: "Commandes",
+                    onTap: () => _openOrders(context),
+                  ),
                   _FooterButton(icon: Icons.settings, label: "Réglages", onTap: () {
                     Navigator.push(
                       context,

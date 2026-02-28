@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../widgets/section_title.dart';
+import '../widgets/styled_text_field.dart';
+import '../widgets/styled_button.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
-
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -56,7 +58,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await FirebaseAuth.instance.signOut();
   }
 
-  // Ré-authentifie l'utilisateur avant une action sensible
   Future<bool> _reauthenticate(String password) async {
     try {
       final credential = EmailAuthProvider.credential(
@@ -165,21 +166,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: CircleAvatar(
                   radius: 45,
                   backgroundColor: const Color.fromARGB(255, 150, 201, 222),
-                  child: Icon(Icons.sailing, size: 40)
+                  child: const Icon(Icons.sailing, size: 40),
                 ),
               ),
 
               const SizedBox(height: 30),
 
               // Section Nom
-              _SectionTitle(title: "Nom"),
+              SectionTitle(title: "Nom"),
               const SizedBox(height: 10),
-              _StyledTextField(
+              StyledTextField(
                 controller: _displayNameController,
-                icon: Icons.person, label: '',
+                icon: Icons.person,
+                label: '',
               ),
               const SizedBox(height: 10),
-              _StyledButton(
+              StyledButton(
                 label: "Mettre à jour le nom",
                 loading: _loadingName,
                 onPressed: _updateDisplayName,
@@ -188,15 +190,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 30),
 
               // Section Email
-              _SectionTitle(title: "Adresse email"),
+              SectionTitle(title: "Adresse email"),
               const SizedBox(height: 10),
-              _StyledTextField(
+              StyledTextField(
                 controller: _emailController,
                 icon: Icons.email,
-                keyboardType: TextInputType.emailAddress, label: '',
+                keyboardType: TextInputType.emailAddress,
+                label: '',
               ),
               const SizedBox(height: 10),
-              _StyledTextField(
+              StyledTextField(
                 controller: _currentPasswordController,
                 label: "Mot de passe actuel (requis)",
                 icon: Icons.lock,
@@ -205,7 +208,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() => _obscureCurrent = !_obscureCurrent),
               ),
               const SizedBox(height: 10),
-              _StyledButton(
+              StyledButton(
                 label: "Mettre à jour l'email",
                 loading: _loadingEmail,
                 onPressed: _updateEmail,
@@ -214,9 +217,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 30),
 
               // Section Mot de passe
-              _SectionTitle(title: "Mot de passe"),
+              SectionTitle(title: "Mot de passe"),
               const SizedBox(height: 10),
-              _StyledTextField(
+              StyledTextField(
                 controller: _currentPasswordController,
                 label: "Mot de passe actuel",
                 icon: Icons.lock_outline,
@@ -225,7 +228,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() => _obscureCurrent = !_obscureCurrent),
               ),
               const SizedBox(height: 10),
-              _StyledTextField(
+              StyledTextField(
                 controller: _newPasswordController,
                 label: "Nouveau mot de passe",
                 icon: Icons.lock,
@@ -234,7 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() => _obscureNew = !_obscureNew),
               ),
               const SizedBox(height: 10),
-              _StyledTextField(
+              StyledTextField(
                 controller: _confirmPasswordController,
                 label: "Confirmer le mot de passe",
                 icon: Icons.lock,
@@ -243,7 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() => _obscureConfirm = !_obscureConfirm),
               ),
               const SizedBox(height: 10),
-              _StyledButton(
+              StyledButton(
                 label: "Mettre à jour le mot de passe",
                 loading: _loadingPassword,
                 onPressed: _updatePassword,
@@ -264,119 +267,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-// Widgets utilitaires
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        color: Color(0xFF2D5478),
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-}
-
-class _StyledTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final IconData icon;
-  final bool obscure;
-  final VoidCallback? onToggleObscure;
-  final TextInputType keyboardType;
-
-  const _StyledTextField({
-    required this.controller,
-    required this.label,
-    required this.icon,
-    this.obscure = false,
-    this.onToggleObscure,
-    this.keyboardType = TextInputType.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      keyboardType: keyboardType,
-      style: const TextStyle(color: Color(0xFF2D5478)),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Color(0xFF2D5478)),
-        prefixIcon: Icon(icon, color: const Color(0xFF2D5478)),
-        suffixIcon: onToggleObscure != null
-            ? IconButton(
-                icon: Icon(
-                  obscure ? Icons.visibility : Icons.visibility_off,
-                  color: const Color(0xFF2D5478),
-                ),
-                onPressed: onToggleObscure,
-              )
-            : null,
-        filled: true,
-        fillColor: const Color.fromARGB(255, 150, 201, 222),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-}
-
-class _StyledButton extends StatelessWidget {
-  final String label;
-  final bool loading;
-  final VoidCallback onPressed;
-
-  const _StyledButton({
-    required this.label,
-    required this.loading,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 150, 201, 222),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        onPressed: loading ? null : onPressed,
-        child: loading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFF2D5478),
-                ),
-              )
-            : Text(
-                label,
-                style: const TextStyle(
-                  color: Color(0xFF2D5478),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
       ),
     );
   }
