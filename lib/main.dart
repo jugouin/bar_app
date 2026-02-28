@@ -19,8 +19,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Login',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+      theme: ThemeData.from(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromRGBO(192, 227,	241, 1),        ),
       ),
       home: AuthGate(),
     );

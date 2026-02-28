@@ -1188,10 +1188,6 @@ PODS:
     - abseil/meta/type_traits
     - abseil/xcprivacy
   - abseil/xcprivacy (1.20240722.0)
-  - AppCheckCore (11.2.0):
-    - GoogleUtilities/Environment (~> 8.0)
-    - GoogleUtilities/UserDefaults (~> 8.0)
-    - PromisesObjC (~> 2.4)
   - BoringSSL-GRPC (0.0.37):
     - BoringSSL-GRPC/Implementation (= 0.0.37)
     - BoringSSL-GRPC/Interface (= 0.0.37)
@@ -1199,43 +1195,12 @@ PODS:
     - BoringSSL-GRPC/Interface (= 0.0.37)
   - BoringSSL-GRPC/Interface (0.0.37)
   - cloud_firestore (6.1.2):
-    - Firebase/Firestore (= 12.8.0)
+    - Firebase/CoreOnly (~> 12.8.0)
+    - Firebase/Firestore (~> 12.8.0)
     - firebase_core
-    - Flutter
-  - DKImagePickerController/Core (4.3.9):
-    - DKImagePickerController/ImageDataManager
-    - DKImagePickerController/Resource
-  - DKImagePickerController/ImageDataManager (4.3.9)
-  - DKImagePickerController/PhotoGallery (4.3.9):
-    - DKImagePickerController/Core
-    - DKPhotoGallery
-  - DKImagePickerController/Resource (4.3.9)
-  - DKPhotoGallery (0.0.19):
-    - DKPhotoGallery/Core (= 0.0.19)
-    - DKPhotoGallery/Model (= 0.0.19)
-    - DKPhotoGallery/Preview (= 0.0.19)
-    - DKPhotoGallery/Resource (= 0.0.19)
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Core (0.0.19):
-    - DKPhotoGallery/Model
-    - DKPhotoGallery/Preview
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Model (0.0.19):
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Preview (0.0.19):
-    - DKPhotoGallery/Model
-    - DKPhotoGallery/Resource
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Resource (0.0.19):
-    - SDWebImage
-    - SwiftyGif
+    - FlutterMacOS
   - file_picker (0.0.1):
-    - DKImagePickerController/PhotoGallery
-    - Flutter
+    - FlutterMacOS
   - Firebase/Auth (12.8.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 12.8.0)
@@ -1244,24 +1209,14 @@ PODS:
   - Firebase/Firestore (12.8.0):
     - Firebase/CoreOnly
     - FirebaseFirestore (~> 12.8.0)
-  - firebase_app_check (0.4.1-4):
+  - firebase_auth (6.1.4):
+    - Firebase/Auth (~> 12.8.0)
     - Firebase/CoreOnly (~> 12.8.0)
     - firebase_core
-    - FirebaseAppCheck (~> 12.8.0)
-    - Flutter
-  - firebase_auth (6.1.4):
-    - Firebase/Auth (= 12.8.0)
-    - firebase_core
-    - Flutter
+    - FlutterMacOS
   - firebase_core (4.4.0):
-    - Firebase/CoreOnly (= 12.8.0)
-    - Flutter
-  - FirebaseAppCheck (12.8.0):
-    - AppCheckCore (~> 11.0)
-    - FirebaseAppCheckInterop (~> 12.8.0)
-    - FirebaseCore (~> 12.8.0)
-    - GoogleUtilities/Environment (~> 8.1)
-    - GoogleUtilities/UserDefaults (~> 8.1)
+    - Firebase/CoreOnly (~> 12.8.0)
+    - FlutterMacOS
   - FirebaseAppCheckInterop (12.8.0)
   - FirebaseAuth (12.8.0):
     - FirebaseAppCheckInterop (~> 12.8.0)
@@ -1302,20 +1257,7 @@ PODS:
     - leveldb-library (~> 1.22)
     - nanopb (~> 3.30910.0)
   - FirebaseSharedSwift (12.8.0)
-  - Flutter (1.0.0)
-  - GoogleDataTransport (10.1.0):
-    - nanopb (~> 3.30910.0)
-    - PromisesObjC (~> 2.4)
-  - GoogleMLKit/BarcodeScanning (7.0.0):
-    - GoogleMLKit/MLKitCore
-    - MLKitBarcodeScanning (~> 6.0.0)
-  - GoogleMLKit/MLKitCore (7.0.0):
-    - MLKitCommon (~> 12.0.0)
-  - GoogleToolboxForMac/Defines (4.2.1)
-  - GoogleToolboxForMac/Logger (4.2.1):
-    - GoogleToolboxForMac/Defines (= 4.2.1)
-  - "GoogleToolboxForMac/NSData+zlib (4.2.1)":
-    - GoogleToolboxForMac/Defines (= 4.2.1)
+  - FlutterMacOS (1.0.0)
   - GoogleUtilities/AppDelegateSwizzler (8.1.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
@@ -1335,9 +1277,6 @@ PODS:
     - GoogleUtilities/Privacy
   - GoogleUtilities/Privacy (8.1.0)
   - GoogleUtilities/Reachability (8.1.0):
-    - GoogleUtilities/Logger
-    - GoogleUtilities/Privacy
-  - GoogleUtilities/UserDefaults (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
   - "gRPC-C++ (1.69.0)":
@@ -1432,63 +1371,29 @@ PODS:
     - gRPC-Core/Privacy (= 1.69.0)
   - gRPC-Core/Interface (1.69.0)
   - gRPC-Core/Privacy (1.69.0)
-  - GTMSessionFetcher/Core (3.5.0)
+  - GTMSessionFetcher/Core (5.1.0)
   - leveldb-library (1.22.6)
-  - MLImage (1.0.0-beta6)
-  - MLKitBarcodeScanning (6.0.0):
-    - MLKitCommon (~> 12.0)
-    - MLKitVision (~> 8.0)
-  - MLKitCommon (12.0.0):
-    - GoogleDataTransport (~> 10.0)
-    - GoogleToolboxForMac/Logger (< 5.0, >= 4.2.1)
-    - "GoogleToolboxForMac/NSData+zlib (< 5.0, >= 4.2.1)"
-    - GoogleUtilities/Logger (~> 8.0)
-    - GoogleUtilities/UserDefaults (~> 8.0)
-    - GTMSessionFetcher/Core (< 4.0, >= 3.3.2)
-  - MLKitVision (8.0.0):
-    - GoogleToolboxForMac/Logger (< 5.0, >= 4.2.1)
-    - "GoogleToolboxForMac/NSData+zlib (< 5.0, >= 4.2.1)"
-    - GTMSessionFetcher/Core (< 4.0, >= 3.3.2)
-    - MLImage (= 1.0.0-beta6)
-    - MLKitCommon (~> 12.0)
   - mobile_scanner (6.0.2):
-    - Flutter
-    - GoogleMLKit/BarcodeScanning (~> 7.0.0)
-  - MTBBarcodeScanner (5.0.11)
+    - FlutterMacOS
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - PromisesObjC (2.4.0)
-  - qr_code_scanner (0.2.0):
-    - Flutter
-    - MTBBarcodeScanner
-  - RecaptchaInterop (101.0.0)
-  - SDWebImage (5.21.7):
-    - SDWebImage/Core (= 5.21.7)
-  - SDWebImage/Core (5.21.7)
-  - SwiftyGif (5.4.5)
 
 DEPENDENCIES:
-  - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
-  - file_picker (from `.symlinks/plugins/file_picker/ios`)
-  - firebase_app_check (from `.symlinks/plugins/firebase_app_check/ios`)
-  - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
-  - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
-  - Flutter (from `Flutter`)
-  - mobile_scanner (from `.symlinks/plugins/mobile_scanner/ios`)
-  - qr_code_scanner (from `.symlinks/plugins/qr_code_scanner/ios`)
+  - cloud_firestore (from `Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos`)
+  - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
+  - firebase_auth (from `Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos`)
+  - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos`)
 
 SPEC REPOS:
   trunk:
     - abseil
-    - AppCheckCore
     - BoringSSL-GRPC
-    - DKImagePickerController
-    - DKPhotoGallery
     - Firebase
-    - FirebaseAppCheck
     - FirebaseAppCheckInterop
     - FirebaseAuth
     - FirebaseAuthInterop
@@ -1498,56 +1403,35 @@ SPEC REPOS:
     - FirebaseFirestore
     - FirebaseFirestoreInternal
     - FirebaseSharedSwift
-    - GoogleDataTransport
-    - GoogleMLKit
-    - GoogleToolboxForMac
     - GoogleUtilities
     - "gRPC-C++"
     - gRPC-Core
     - GTMSessionFetcher
     - leveldb-library
-    - MLImage
-    - MLKitBarcodeScanning
-    - MLKitCommon
-    - MLKitVision
-    - MTBBarcodeScanner
     - nanopb
-    - PromisesObjC
-    - RecaptchaInterop
-    - SDWebImage
-    - SwiftyGif
 
 EXTERNAL SOURCES:
   cloud_firestore:
-    :path: ".symlinks/plugins/cloud_firestore/ios"
+    :path: Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos
   file_picker:
-    :path: ".symlinks/plugins/file_picker/ios"
-  firebase_app_check:
-    :path: ".symlinks/plugins/firebase_app_check/ios"
+    :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   firebase_auth:
-    :path: ".symlinks/plugins/firebase_auth/ios"
+    :path: Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos
   firebase_core:
-    :path: ".symlinks/plugins/firebase_core/ios"
-  Flutter:
-    :path: Flutter
+    :path: Flutter/ephemeral/.symlinks/plugins/firebase_core/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral
   mobile_scanner:
-    :path: ".symlinks/plugins/mobile_scanner/ios"
-  qr_code_scanner:
-    :path: ".symlinks/plugins/qr_code_scanner/ios"
+    :path: Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos
 
 SPEC CHECKSUMS:
   abseil: a05cc83bf02079535e17169a73c5be5ba47f714b
-  AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
-  cloud_firestore: 4bd00c3464706d9e09dabac0bb8e9610456109f5
-  DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
-  DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
-  file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
+  cloud_firestore: 71947b640bd24f6f849d9d185e5d0a619fa6b93b
+  file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   Firebase: 9a58fdbc9d8655ed7b79a19cf9690bb007d3d46d
-  firebase_app_check: 21e404a225ce29ae2ec6dbad503e83fd1c4ac1fb
-  firebase_auth: e9031a1dbe04a90d98e8d11ff2302352a1c6d9e8
-  firebase_core: ee30637e6744af8e0c12a6a1e8a9718506ec2398
-  FirebaseAppCheck: 11da425929a45c677d537adfff3520ccd57c1690
+  firebase_auth: 2c2438e41f061c03bd67dcb045dfd7bc843b5f52
+  firebase_core: b1697fb64ff2b9ca16baaa821205f8b0c058e5d2
   FirebaseAppCheckInterop: ba3dc604a89815379e61ec2365101608d365cf7d
   FirebaseAuth: 4c289b1a43f5955283244a55cf6bd616de344be5
   FirebaseAuthInterop: 95363fe96493cb4f106656666a0768b420cba090
@@ -1557,28 +1441,15 @@ SPEC CHECKSUMS:
   FirebaseFirestore: 67f23000ca238ccbab79127ed59636a9a2689e74
   FirebaseFirestoreInternal: a0e7382af3d208898dcd1d4d52d8a7870632e881
   FirebaseSharedSwift: f57ed48f4542b2d7eb4738f4f23ba443f78b3780
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
-  GoogleMLKit: eff9e23ec1d90ea4157a1ee2e32a4f610c5b3318
-  GoogleToolboxForMac: d1a2cbf009c453f4d6ded37c105e2f67a32206d8
+  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   "gRPC-C++": cc207623316fb041a7a3e774c252cf68a058b9e8
   gRPC-Core: 860978b7db482de8b4f5e10677216309b5ff6330
-  GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
+  GTMSessionFetcher: b8ab00db932816e14b0a0664a08cb73dda6d164b
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
-  MLImage: 0ad1c5f50edd027672d8b26b0fee78a8b4a0fc56
-  MLKitBarcodeScanning: 0a3064da0a7f49ac24ceb3cb46a5bc67496facd2
-  MLKitCommon: 07c2c33ae5640e5380beaaa6e4b9c249a205542d
-  MLKitVision: 45e79d68845a2de77e2dd4d7f07947f0ed157b0e
-  mobile_scanner: af8f71879eaba2bbcb4d86c6a462c3c0e7f23036
-  MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
+  mobile_scanner: 0e365ed56cad24f28c0fd858ca04edefb40dfac3
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  qr_code_scanner: d77f94ecc9abf96d9b9b8fc04ef13f611e5a147a
-  RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
-  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
-  SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
 
-PODFILE CHECKSUM: 89a65e4ba65529e9348d0422d9cba3a752ce3ce5
+PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
 
 COCOAPODS: 1.16.2

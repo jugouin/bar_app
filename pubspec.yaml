@@ -40,6 +40,9 @@ dependencies:
   firebase_auth: ^6.1.4
   file_picker: ^10.3.10
   csv: ^7.1.0
+  mobile_scanner: ^6.0.0
+  firebase_app_check: ^0.4.1+4
+
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +60,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - lib/assets/logo_cve.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
