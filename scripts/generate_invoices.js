@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const ExcelJS = require("exceljs");
 const { Resend } = require("resend");
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -36,16 +37,14 @@ async function main() {
   ordersSnap.forEach((doc) => {
     const data = doc.data();
     const email = data.email;
-    if (!email) return; // ignorer les commandes sans email
+    if (!email) return;
     if (!ordersByEmail[email]) ordersByEmail[email] = [];
     ordersByEmail[email].push(data);
   });
 
-  // Générer le CSV
-  const csvContent = generateCSV(ordersByEmail, monthLabel);
-  const base64 = Buffer.from(csvContent, "utf-8").toString("base64");
+  const excelBuffer = await generateExcel(ordersByEmail, monthLabel);
+  const base64 = Buffer.from(excelBuffer).toString("base64");
 
-  // Envoyer à toi-même
   await resend.emails.send({
     from: process.env.MAIL_FROM,
     to: process.env.MAIL_FROM,
@@ -57,54 +56,139 @@ async function main() {
     `,
     attachments: [
       {
-        filename: `recap_${monthLabel.replace(" ", "_")}.csv`,
+        filename: `recap_${monthLabel.replace(" ", "_")}.xlsx`,
         content: base64,
       },
     ],
   });
 
-  console.log(`✅ Récapitulatif envoyé à tresor@voile-evian.fr`);
+  console.log(`✅ Récapitulatif envoyé à ${process.env.MAIL_FROM}`);
   process.exit(0);
 }
 
-function generateCSV(ordersByEmail, monthLabel) {
-  const lines = [];
+async function generateExcel(ordersByEmail, monthLabel) {
+  const workbook = new ExcelJS.Workbook();
 
-  // En-tête du fichier
-  lines.push(`Récapitulatif des commandes - ${monthLabel}`);
-  lines.push("");
-  lines.push("Email,Produit,Quantité,Prix unitaire,Sous-total,Date");
+  // ── Onglet 1 : Détail des commandes ──────────────────────────────
+  const detailSheet = workbook.addWorksheet("Détail");
 
-  const totauxParPersonne = {};
+  // Titre
+  detailSheet.mergeCells("A1:F1");
+  const titleCell = detailSheet.getCell("A1");
+  titleCell.value = `Récapitulatif des commandes – ${monthLabel}`;
+  titleCell.font = { bold: true, size: 16, color: { argb: "FFFFFFFF" } };
+  titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2D5478" } };
+  titleCell.alignment = { horizontal: "center", vertical: "middle" };
+  detailSheet.getRow(1).height = 35;
 
+  detailSheet.addRow([]);
+
+  // En-têtes colonnes
+  const detailHeaders = detailSheet.addRow([
+    "Email", "Date", "Produit", "Quantité", "Prix unitaire", "Sous-total"
+  ]);
+  detailSheet.columns = [
+    { key: "email",    width: 30 },
+    { key: "date",     width: 15 },
+    { key: "product",  width: 25 },
+    { key: "quantity", width: 12 },
+    { key: "unitPrice",width: 15 },
+    { key: "subtotal", width: 15 },
+  ];
+  detailHeaders.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4A90B8" } };
+    cell.alignment = { horizontal: "center" };
+    cell.border = { bottom: { style: "thin", color: { argb: "FF2D5478" } } };
+  });
+
+  // Données
+  let rowIndex = 4;
   for (const [email, orders] of Object.entries(ordersByEmail)) {
-    let totalPersonne = 0;
-
     for (const order of orders) {
       const date = new Date(order.createdAt).toLocaleDateString("fr-FR");
       for (const item of order.items) {
         const lineTotal = item.price * item.quantity;
-        totalPersonne += lineTotal;
-        lines.push(
-          `${email},${item.productName},${item.quantity},${item.price.toFixed(2)} €,${lineTotal.toFixed(2)} €,${date}`
-        );
+        const row = detailSheet.addRow([
+          email,
+          date,
+          item.productName,
+          item.quantity,
+          item.price,
+          lineTotal,
+        ]);
+        // Alterner les couleurs de lignes
+        const bgColor = rowIndex % 2 === 0 ? "FFE8F4FB" : "FFFFFFFF";
+        row.eachCell((cell) => {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgColor } };
+          cell.alignment = { horizontal: "center" };
+        });
+        // Format euro
+        row.getCell(5).numFmt = '#,##0.00 "€"';
+        row.getCell(6).numFmt = '#,##0.00 "€"';
+        rowIndex++;
       }
     }
-
-    totauxParPersonne[email] = totalPersonne;
   }
 
-  // Séparateur
-  lines.push("");
-  lines.push("--- TOTAUX PAR PERSONNE ---");
-  lines.push("");
-  lines.push("Email,Total du mois");
+  // ── Onglet 2 : Totaux par personne ───────────────────────────────
+  const summarySheet = workbook.addWorksheet("Totaux");
 
-  for (const [email, total] of Object.entries(totauxParPersonne)) {
-    lines.push(`${email},${total.toFixed(2)} €`);
+  summarySheet.mergeCells("A1:B1");
+  const summaryTitle = summarySheet.getCell("A1");
+  summaryTitle.value = `Totaux par personne – ${monthLabel}`;
+  summaryTitle.font = { bold: true, size: 16, color: { argb: "FFFFFFFF" } };
+  summaryTitle.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2D5478" } };
+  summaryTitle.alignment = { horizontal: "center", vertical: "middle" };
+  summarySheet.getRow(1).height = 35;
+
+  summarySheet.addRow([]);
+
+  summarySheet.columns = [
+    { key: "email", width: 35 },
+    { key: "total", width: 18 },
+  ];
+
+  const summaryHeaders = summarySheet.addRow(["Email", "Total du mois"]);
+  summaryHeaders.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4A90B8" } };
+    cell.alignment = { horizontal: "center" };
+  });
+
+  let grandTotal = 0;
+  let summaryRowIndex = 4;
+
+  for (const [email, orders] of Object.entries(ordersByEmail)) {
+    let totalPersonne = 0;
+    for (const order of orders) {
+      for (const item of order.items) {
+        totalPersonne += item.price * item.quantity;
+      }
+    }
+    grandTotal += totalPersonne;
+
+    const row = summarySheet.addRow([email, totalPersonne]);
+    const bgColor = summaryRowIndex % 2 === 0 ? "FFE8F4FB" : "FFFFFFFF";
+    row.eachCell((cell) => {
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgColor } };
+      cell.alignment = { horizontal: "center" };
+    });
+    row.getCell(2).numFmt = '#,##0.00 "€"';
+    summaryRowIndex++;
   }
 
-  return lines.join("\n");
+  // Ligne grand total
+  summarySheet.addRow([]);
+  const grandTotalRow = summarySheet.addRow(["TOTAL GÉNÉRAL", grandTotal]);
+  grandTotalRow.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2D5478" } };
+    cell.alignment = { horizontal: "center" };
+  });
+  grandTotalRow.getCell(2).numFmt = '#,##0.00 "€"';
+
+  return await workbook.xlsx.writeBuffer();
 }
 
 main().catch((err) => {

@@ -3,6 +3,7 @@
   "main": "generate_invoices.js",
   "dependencies": {
     "firebase-admin": "^13.6.1",
+    "exceljs": "^4.4.0",
     "resend": "^3.2.0"
   }
 }
