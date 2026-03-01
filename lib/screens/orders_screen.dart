@@ -30,7 +30,6 @@ class OrdersScreen extends StatelessWidget {
                 'email',
                 isEqualTo: FirebaseAuth.instance.currentUser!.email,
               )
-              // .orderBy('createdAt', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -49,6 +48,12 @@ class OrdersScreen extends StatelessWidget {
             }
 
             final orders = snapshot.data!.docs;
+
+            orders.sort((a, b) {
+              final aDate = DateTime.parse((a.data() as Map<String, dynamic>)['createdAt']);
+              final bDate = DateTime.parse((b.data() as Map<String, dynamic>)['createdAt']);
+              return bDate.compareTo(aDate);
+            });
 
             return ListView.builder(
               padding: const EdgeInsets.symmetric(

@@ -1,8 +1,6 @@
 const admin = require("firebase-admin");
-const ExcelJS = require("exceljs");
 const { Resend } = require("resend");
 
-// Init Firebase avec le service account stocké dans les secrets GitHub
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -13,16 +11,15 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function main() {
   const now = new Date();
-  const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthLabel = firstDayLastMonth.toLocaleString("fr-FR", {
     month: "long",
     year: "numeric",
   });
 
-  console.log(`Génération des factures pour : ${monthLabel}`);
+  console.log(`Génération du récapitulatif pour : ${monthLabel}`);
 
-  // Récupérer les commandes du mois précédent
   const ordersSnap = await db
     .collection("orders")
     .where("createdAt", ">=", firstDayLastMonth.toISOString())
@@ -38,103 +35,76 @@ async function main() {
   const ordersByEmail = {};
   ordersSnap.forEach((doc) => {
     const data = doc.data();
-    if (!ordersByEmail[data.email]) ordersByEmail[data.email] = [];
-    ordersByEmail[data.email].push(data);
+    const email = data.email;
+    if (!email) return; // ignorer les commandes sans email
+    if (!ordersByEmail[email]) ordersByEmail[email] = [];
+    ordersByEmail[email].push(data);
   });
 
-  // Générer et envoyer une facture par utilisateur
-  for (const [email, orders] of Object.entries(ordersByEmail)) {
-    try {
-      const excelBuffer = await generateExcel(email, orders, monthLabel);
-      await sendInvoiceEmail(email, excelBuffer, monthLabel);
-      console.log(`✅ Facture envoyée à ${email}`);
-    } catch (err) {
-      console.error(`❌ Erreur pour ${email} :`, err);
-    }
-  }
+  // Générer le CSV
+  const csvContent = generateCSV(ordersByEmail, monthLabel);
+  const base64 = Buffer.from(csvContent, "utf-8").toString("base64");
 
-  process.exit(0);
-}
-
-async function generateExcel(email, orders, monthLabel) {
-  const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet("Facture");
-
-  // En-tête
-  sheet.mergeCells("A1:D1");
-  sheet.getCell("A1").value = `Facture – ${monthLabel}`;
-  sheet.getCell("A1").font = { bold: true, size: 16 };
-  sheet.getCell("A1").alignment = { horizontal: "center" };
-
-  sheet.mergeCells("A2:D2");
-  sheet.getCell("A2").value = email;
-  sheet.getCell("A2").alignment = { horizontal: "center" };
-
-  sheet.addRow([]);
-
-  sheet.columns = [
-    { key: "date", width: 20 },
-    { key: "product", width: 25 },
-    { key: "quantity", width: 12 },
-    { key: "price", width: 12 },
-  ];
-
-  const headerRow = sheet.addRow(["Date", "Produit", "Quantité", "Prix"]);
-  headerRow.eachCell((cell) => {
-    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-    cell.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FF2D5478" },
-    };
-    cell.alignment = { horizontal: "center" };
-  });
-
-  let grandTotal = 0;
-
-  for (const order of orders) {
-    const date = new Date(order.createdAt).toLocaleDateString("fr-FR");
-    for (const item of order.items) {
-      const lineTotal = item.price * item.quantity;
-      grandTotal += lineTotal;
-      const row = sheet.addRow([
-        date,
-        item.productName,
-        item.quantity,
-        `${lineTotal.toFixed(2)} €`,
-      ]);
-      row.getCell(4).alignment = { horizontal: "right" };
-    }
-  }
-
-  sheet.addRow([]);
-  const totalRow = sheet.addRow(["", "", "TOTAL", `${grandTotal.toFixed(2)} €`]);
-  totalRow.eachCell((cell) => { cell.font = { bold: true }; });
-  totalRow.getCell(3).alignment = { horizontal: "right" };
-  totalRow.getCell(4).alignment = { horizontal: "right" };
-
-  return await workbook.xlsx.writeBuffer();
-}
-
-async function sendInvoiceEmail(email, excelBuffer, monthLabel) {
-  const base64 = Buffer.from(excelBuffer).toString("base64");
-
+  // Envoyer à toi-même
   await resend.emails.send({
     from: process.env.MAIL_FROM,
-    to: email,
-    subject: `Votre facture de consommation – ${monthLabel}`,
+    to: process.env.MAIL_FROM,
+    subject: `Récapitulatif des commandes – ${monthLabel}`,
     html: `
       <p>Bonjour,</p>
-      <p>Veuillez trouver ci-joint votre facture de consommation pour <strong>${monthLabel}</strong>.</p>
-      <p>Cordialement</p>
+      <p>Veuillez trouver ci-joint le récapitulatif des commandes de <strong>${monthLabel}</strong>.</p>
+      <p>${Object.keys(ordersByEmail).length} compte(s) ont passé des commandes ce mois-ci.</p>
     `,
     attachments: [
       {
-        filename: `facture_${monthLabel.replace(" ", "_")}.xlsx`,
+        filename: `recap_${monthLabel.replace(" ", "_")}.csv`,
         content: base64,
       },
     ],
   });
+
+  console.log(`✅ Récapitulatif envoyé à tresor@voile-evian.fr`);
+  process.exit(0);
+}
+
+function generateCSV(ordersByEmail, monthLabel) {
+  const lines = [];
+
+  // En-tête du fichier
+  lines.push(`Récapitulatif des commandes - ${monthLabel}`);
+  lines.push("");
+  lines.push("Email,Produit,Quantité,Prix unitaire,Sous-total,Date");
+
+  const totauxParPersonne = {};
+
+  for (const [email, orders] of Object.entries(ordersByEmail)) {
+    let totalPersonne = 0;
+
+    for (const order of orders) {
+      const date = new Date(order.createdAt).toLocaleDateString("fr-FR");
+      for (const item of order.items) {
+        const lineTotal = item.price * item.quantity;
+        totalPersonne += lineTotal;
+        lines.push(
+          `${email},${item.productName},${item.quantity},${item.price.toFixed(2)} €,${lineTotal.toFixed(2)} €,${date}`
+        );
+      }
+    }
+
+    totauxParPersonne[email] = totalPersonne;
+  }
+
+  // Séparateur
+  lines.push("");
+  lines.push("--- TOTAUX PAR PERSONNE ---");
+  lines.push("");
+  lines.push("Email,Total du mois");
+
+  for (const [email, total] of Object.entries(totauxParPersonne)) {
+    lines.push(`${email},${total.toFixed(2)} €`);
+  }
+
+  return lines.join("\n");
 }
 
 main().catch((err) => {
