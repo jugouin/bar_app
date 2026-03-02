@@ -38,7 +38,7 @@ class Order {
 
   Map<String, dynamic> toMap() => {
     'email': FirebaseAuth.instance.currentUser!.email,
-    'name': FirebaseAuth.instance.currentUser!.displayName,
+    'name': name,
     'items': items.map((i) => i.toMap()).toList(),
     'total': total,
     'createdAt': createdAt.toIso8601String(),

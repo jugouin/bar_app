@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bar_app/auth_gate.dart'; 
 import '../widgets/section_title.dart';
 import '../widgets/styled_text_field.dart';
 import '../widgets/styled_button.dart';
@@ -31,8 +33,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _displayNameController.text = _user?.displayName ?? '';
     _emailController.text = _user?.email ?? '';
+    _loadNameFromFirestore();
+  }
+
+  Future<void> _loadNameFromFirestore() async {
+    if (_user == null) return;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user.uid)
+        .get();
+    if (mounted) {
+      _displayNameController.text = doc.data()?['name'] ?? '';
+    }
   }
 
   @override
@@ -80,6 +93,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _loadingName = true);
     try {
       await _user!.updateDisplayName(_displayNameController.text.trim());
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user.uid)
+          .update({'name': _displayNameController.text.trim()});
       _showSnack("Nom mis à jour avec succès !");
     } catch (e) {
       _showSnack("Erreur : ${e.toString()}", error: true);
