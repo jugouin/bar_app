@@ -92,11 +92,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     setState(() => _loadingName = true);
     try {
-      await _user!.updateDisplayName(_displayNameController.text.trim());
+      final newName = _displayNameController.text.trim();
+
+      // Mettre à jour Auth + Firestore users
+      await _user!.updateDisplayName(newName);
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_user.uid)
-          .update({'name': _displayNameController.text.trim()});
+          .update({'name': newName});
+
+      // Mettre à jour toutes les commandes existantes
+      final orders = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('uid', isEqualTo: _user.uid)
+          .get();
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in orders.docs) {
+        batch.update(doc.reference, {'name': newName});
+      }
+      await batch.commit();
       _showSnack("Nom mis à jour avec succès !");
     } catch (e) {
       _showSnack("Erreur : ${e.toString()}", error: true);
@@ -121,8 +135,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
     try {
-      await _user!.verifyBeforeUpdateEmail(_emailController.text.trim());
-      _showSnack("Email de vérification envoyé à ${_emailController.text.trim()}");
+      final newEmail = _emailController.text.trim();
+
+      // Mettre à jour Auth (avec vérification)
+      await _user!.verifyBeforeUpdateEmail(newEmail);
+
+      // Mettre à jour Firestore users + commandes existantes
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user.uid)
+          .update({'email': newEmail});
+
+      final orders = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('uid', isEqualTo: _user.uid)
+          .get();
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in orders.docs) {
+        batch.update(doc.reference, {'email': newEmail});
+      }
+      await batch.commit();
+
+      _showSnack("Email de vérification envoyé à $newEmail");
     } catch (e) {
       _showSnack("Erreur : ${e.toString()}", error: true);
     } finally {

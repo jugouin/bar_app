@@ -22,6 +22,7 @@ class OrderItem {
 }
 
 class Order {
+  final String uid; 
   final String email;
   final String name;
   final List<OrderItem> items;
@@ -29,6 +30,7 @@ class Order {
   final DateTime createdAt;
   
   Order({
+    required this.uid,
     required this.email,
     required this.name,
     required this.items,
@@ -37,7 +39,8 @@ class Order {
   });
 
   Map<String, dynamic> toMap() => {
-    'email': FirebaseAuth.instance.currentUser!.email,
+    'uid': uid,
+    'email': email,
     'name': name,
     'items': items.map((i) => i.toMap()).toList(),
     'total': total,

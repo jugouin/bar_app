@@ -127,6 +127,7 @@ Future<void> _validateOrder() async {
       final name = doc.data()?['name'] ?? '';
 
       final order = Order(
+        uid: user.uid, 
         email: user.email!,
         name: name,
         total: _total,
