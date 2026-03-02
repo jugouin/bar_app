@@ -107,9 +107,11 @@ async function generateExcel(ordersByUid, monthLabel) {
   for (const [uid, orders] of Object.entries(ordersByUid)) {
     for (const order of orders) {
       const date = new Date(order.createdAt).toLocaleDateString("fr-FR");
+       const name = order.name ?? order.email ?? uid;
       for (const item of order.items) {
         const lineTotal = item.price * item.quantity;
         const row = detailSheet.addRow([
+          name,
           date,
           item.productName,
           item.quantity,
@@ -167,7 +169,10 @@ async function generateExcel(ordersByUid, monthLabel) {
     }
     grandTotal += totalPersonne;
 
-    const row = summarySheet.addRow([uid, totalPersonne]);
+
+    const name = orders[0].name ?? orders[0].email ?? uid;
+
+    const row = summarySheet.addRow([name, totalPersonne]);
     const bgColor = summaryRowIndex % 2 === 0 ? "FFE8F4FB" : "FFFFFFFF";
     row.eachCell((cell) => {
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgColor } };
