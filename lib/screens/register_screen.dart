@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/styled_text_field.dart';
 import '../widgets/styled_button.dart';
 import '../widgets/section_title.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -124,16 +125,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _loading = true);
 
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text,
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-      await FirebaseAuth.instance.currentUser?.updateDisplayName(_displayNameController.text);
-      await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+
+      final user = credential.user!;
+
+      // Mettre à jour le displayName dans Firebase Auth
+      await user.updateDisplayName(_displayNameController.text.trim());
+      await user.sendEmailVerification();
+
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'name': _displayNameController.text.trim(),
+        'email': _emailController.text.trim(),
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Inscription réussie !")),
       );
+      
       if (context.mounted) {
         Navigator.pushReplacement(
           context,

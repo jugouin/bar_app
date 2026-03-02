@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bar_app/screens/qr_code_scanner_screen.dart';
@@ -21,6 +22,15 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Future<String> _getUserName() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+    return doc.data()?['name'] ?? '';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,11 +47,17 @@ class HomeScreen extends StatelessWidget {
                 height: 150,
               ),
 
-              Text(
-                "Bonjour ${FirebaseAuth.instance.currentUser!.displayName ?? ''}!",
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: const Color(0xFF2D5478),
-                ),
+              FutureBuilder<String>(
+                future: _getUserName(),
+                builder: (context, snapshot) {
+                  final name = snapshot.data ?? '';
+                  return Text(
+                    "Bonjour $name !",
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: const Color(0xFF2D5478),
+                    ),
+                  );
+                },
               ),
 
               ElevatedButton(
