@@ -23,12 +23,14 @@ class OrderItem {
 
 class Order {
   final String email;
+  final String name;
   final List<OrderItem> items;
   final double total;
   final DateTime createdAt;
   
   Order({
     required this.email,
+    required this.name,
     required this.items,
     required this.total,
     required this.createdAt
@@ -36,6 +38,7 @@ class Order {
 
   Map<String, dynamic> toMap() => {
     'email': FirebaseAuth.instance.currentUser!.email,
+    'name': FirebaseAuth.instance.currentUser!.displayName,
     'items': items.map((i) => i.toMap()).toList(),
     'total': total,
     'createdAt': createdAt.toIso8601String(),

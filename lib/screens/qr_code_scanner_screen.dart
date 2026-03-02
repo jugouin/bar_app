@@ -119,7 +119,8 @@ Future<void> _validateOrder() async {
 
     try {
       final order = Order(
-        email: user.email!, // <-- corrigé
+        email: user.email!,
+        name: user.displayName!,
         total: _total,
         createdAt: DateTime.now(),
         items: _scannedProducts.entries.map((e) => OrderItem(
@@ -144,7 +145,7 @@ Future<void> _validateOrder() async {
       setState(() => _loadingOrder = false);
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final entries = _scannedProducts.entries.toList();
