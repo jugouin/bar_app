@@ -69,6 +69,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _logout() async {
     await FirebaseAuth.instance.signOut();
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const AuthGate()),
+        (route) => false,
+      );
+    }
   }
 
   Future<bool> _reauthenticate(String password) async {

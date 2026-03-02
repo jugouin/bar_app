@@ -18,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-
   bool _obscurePassword = true;
 
   @override
@@ -34,7 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 150),
               Image(image: AssetImage('lib/assets/logo_cve.png'), height: 150),
               const SizedBox(height: 10),
-              Text("Connexion à votre compte", style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                "Connexion à votre compte",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               const SizedBox(height: 60),
               TextFormField(
                 controller: _emailController,
@@ -43,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelText: "E-mail",
                   prefixIcon: const Icon(Icons.mail),
                   border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -76,8 +78,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       });
                     },
                     icon: _obscurePassword
-                      ? const Icon(Icons.visibility_outlined)
-                      : const Icon(Icons.visibility_off_outlined)
+                        ? const Icon(Icons.visibility_outlined)
+                        : const Icon(Icons.visibility_off_outlined),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -101,54 +103,116 @@ class _LoginScreenState extends State<LoginScreen> {
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: "Pas de compte ? ",
+                      text: "Mot de passe oublié ? ",
                       style: const TextStyle(color: Colors.black),
                     ),
                     TextSpan(
-                      text: "Inscrivez-vous !",
+                      text: "Réinitialisez-le !",
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterScreen()));
-                        },
-                      style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                        ..onTap = _resetPassword,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 60),
               ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    await login();
+                  }
+                },
+                child: const Text("Me connecter"),
               ),
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  await login();
-                }
-            },
-              child: const Text("Me connecter"),
-            ),
-          ],
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color.fromARGB(255, 150, 201, 222),
+                  side: BorderSide(
+                    color: Color.fromARGB(255, 150, 201, 222),
+                    width: 0.5,
+                  ),
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => RegisterScreen()),
+                  );
+                },
+                child: const Text("Inscrivez-vous !"),
+              ),
+            ],
           ),
-        )
-      )
+        ),
+      ),
     );
   }
 
   Future<void> login() async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text, password: _passwordController.text
+        email: _emailController.text,
+        password: _passwordController.text,
       );
       if (!mounted) return;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
-    } catch (e) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      final msg = switch (e.code) {
+        'user-not-found'   => "Aucun compte associé à cet e-mail.",
+        'wrong-password'   => "Mot de passe incorrect.",
+        'invalid-email'    => "Adresse e-mail invalide.",
+        'user-disabled'    => "Ce compte a été désactivé.",
+        'too-many-requests'=> "Trop de tentatives. Réessayez plus tard.",
+        'invalid-credential' => "E-mail ou mot de passe incorrect.",
+        _                  => "Erreur de connexion : ${e.message}",
+      };
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim().toLowerCase();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Entrez votre e-mail pour réinitialiser le mot de passe",
+          ),
+        ),
+      );
+      return;
+    }
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Échec de connexion: $e")),
+        SnackBar(content: Text("Email de réinitialisation envoyé à $email")),
       );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Erreur : ${e.toString()}")));
     }
   }
 
