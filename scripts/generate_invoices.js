@@ -145,11 +145,11 @@ async function generateExcel(ordersByName, monthLabel) {
   summarySheet.addRow([]);
 
   summarySheet.columns = [
-    { key: "email", width: 35 },
+    { key: "name", width: 35 },
     { key: "total", width: 18 },
   ];
 
-  const summaryHeaders = summarySheet.addRow(["Email", "Total du mois"]);
+  const summaryHeaders = summarySheet.addRow(["Nom", "Total du mois"]);
   summaryHeaders.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4A90B8" } };
@@ -159,7 +159,7 @@ async function generateExcel(ordersByName, monthLabel) {
   let grandTotal = 0;
   let summaryRowIndex = 4;
 
-  for (const [email, orders] of Object.entries(ordersByEmail)) {
+  for (const [name, orders] of Object.entries(ordersByName)) {
     let totalPersonne = 0;
     for (const order of orders) {
       for (const item of order.items) {
@@ -168,7 +168,7 @@ async function generateExcel(ordersByName, monthLabel) {
     }
     grandTotal += totalPersonne;
 
-    const row = summarySheet.addRow([email, totalPersonne]);
+    const row = summarySheet.addRow([name, totalPersonne]);
     const bgColor = summaryRowIndex % 2 === 0 ? "FFE8F4FB" : "FFFFFFFF";
     row.eachCell((cell) => {
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgColor } };
