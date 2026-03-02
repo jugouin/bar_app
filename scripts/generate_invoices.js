@@ -32,17 +32,17 @@ async function main() {
     process.exit(0);
   }
 
-  // Grouper par email
-  const ordersByEmail = {};
+  // Grouper par name
+  const ordersByName = {};
   ordersSnap.forEach((doc) => {
     const data = doc.data();
-    const email = data.email;
-    if (!email) return;
-    if (!ordersByEmail[email]) ordersByEmail[email] = [];
-    ordersByEmail[email].push(data);
+    const name = data.name;
+    if (!name) return;
+    if (!ordersByName[name]) ordersByName[name] = [];
+    ordersByName[name].push(data);
   });
 
-  const excelBuffer = await generateExcel(ordersByEmail, monthLabel);
+  const excelBuffer = await generateExcel(ordersByName, monthLabel);
   const base64 = Buffer.from(excelBuffer).toString("base64");
 
   await resend.emails.send({
@@ -52,7 +52,7 @@ async function main() {
     html: `
       <p>Bonjour,</p>
       <p>Veuillez trouver ci-joint le récapitulatif des commandes de <strong>${monthLabel}</strong>.</p>
-      <p>${Object.keys(ordersByEmail).length} compte(s) ont passé des commandes ce mois-ci.</p>
+      <p>${Object.keys(ordersByName).length} compte(s) ont passé des commandes ce mois-ci.</p>
     `,
     attachments: [
       {
@@ -66,7 +66,7 @@ async function main() {
   process.exit(0);
 }
 
-async function generateExcel(ordersByEmail, monthLabel) {
+async function generateExcel(ordersByName, monthLabel) {
   const workbook = new ExcelJS.Workbook();
 
   // ── Onglet 1 : Détail des commandes ──────────────────────────────
@@ -85,10 +85,10 @@ async function generateExcel(ordersByEmail, monthLabel) {
 
   // En-têtes colonnes
   const detailHeaders = detailSheet.addRow([
-    "Email", "Date", "Produit", "Quantité", "Prix unitaire", "Sous-total"
+    "Name", "Date", "Produit", "Quantité", "Prix unitaire", "Sous-total"
   ]);
   detailSheet.columns = [
-    { key: "email",    width: 30 },
+    { key: "name",    width: 30 },
     { key: "date",     width: 15 },
     { key: "product",  width: 25 },
     { key: "quantity", width: 12 },
@@ -104,13 +104,13 @@ async function generateExcel(ordersByEmail, monthLabel) {
 
   // Données
   let rowIndex = 4;
-  for (const [email, orders] of Object.entries(ordersByEmail)) {
+  for (const [name, orders] of Object.entries(ordersByName)) {
     for (const order of orders) {
       const date = new Date(order.createdAt).toLocaleDateString("fr-FR");
       for (const item of order.items) {
         const lineTotal = item.price * item.quantity;
         const row = detailSheet.addRow([
-          email,
+          name,
           date,
           item.productName,
           item.quantity,
