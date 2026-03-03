@@ -24,6 +24,7 @@ class MyApp extends StatelessWidget {
           seedColor: const Color.fromRGBO(192, 227,	241, 1),        ),
       ),
       home: AuthGate(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

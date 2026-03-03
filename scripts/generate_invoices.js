@@ -32,17 +32,17 @@ async function main() {
     process.exit(0);
   }
 
-  // Grouper par name
-  const ordersByName = {};
-  ordersSnap.forEach((doc) => {
+  // Grouper par Uid
+    const ordersByUid = {};
+    ordersSnap.forEach((doc) => {
     const data = doc.data();
-    const name = data.name;
-    if (!name) return;
-    if (!ordersByName[name]) ordersByName[name] = [];
-    ordersByName[name].push(data);
-  });
+    const uid = data.uid;
+    if (!uid) return;
+    if (!ordersByUid[uid]) ordersByUid[uid] = [];
+    ordersByUid[uid].push(data);
+    });
 
-  const excelBuffer = await generateExcel(ordersByName, monthLabel);
+  const excelBuffer = await generateExcel(ordersByUid, monthLabel);
   const base64 = Buffer.from(excelBuffer).toString("base64");
 
   await resend.emails.send({
@@ -52,7 +52,7 @@ async function main() {
     html: `
       <p>Bonjour,</p>
       <p>Veuillez trouver ci-joint le récapitulatif des commandes de <strong>${monthLabel}</strong>.</p>
-      <p>${Object.keys(ordersByName).length} compte(s) ont passé des commandes ce mois-ci.</p>
+      <p>${Object.keys(ordersByUid).length} compte(s) ont passé des commandes ce mois-ci.</p>
     `,
     attachments: [
       {
@@ -66,7 +66,7 @@ async function main() {
   process.exit(0);
 }
 
-async function generateExcel(ordersByName, monthLabel) {
+async function generateExcel(ordersByUid, monthLabel) {
   const workbook = new ExcelJS.Workbook();
 
   // ── Onglet 1 : Détail des commandes ──────────────────────────────
@@ -104,9 +104,10 @@ async function generateExcel(ordersByName, monthLabel) {
 
   // Données
   let rowIndex = 4;
-  for (const [name, orders] of Object.entries(ordersByName)) {
+  for (const [uid, orders] of Object.entries(ordersByUid)) {
     for (const order of orders) {
       const date = new Date(order.createdAt).toLocaleDateString("fr-FR");
+       const name = order.name ?? order.email ?? uid;
       for (const item of order.items) {
         const lineTotal = item.price * item.quantity;
         const row = detailSheet.addRow([
@@ -145,11 +146,11 @@ async function generateExcel(ordersByName, monthLabel) {
   summarySheet.addRow([]);
 
   summarySheet.columns = [
-    { key: "email", width: 35 },
+    { key: "name", width: 35 },
     { key: "total", width: 18 },
   ];
 
-  const summaryHeaders = summarySheet.addRow(["Email", "Total du mois"]);
+  const summaryHeaders = summarySheet.addRow(["Nom", "Total du mois"]);
   summaryHeaders.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4A90B8" } };
@@ -159,7 +160,7 @@ async function generateExcel(ordersByName, monthLabel) {
   let grandTotal = 0;
   let summaryRowIndex = 4;
 
-  for (const [email, orders] of Object.entries(ordersByEmail)) {
+  for (const [uid, orders] of Object.entries(ordersByUid)) {
     let totalPersonne = 0;
     for (const order of orders) {
       for (const item of order.items) {
@@ -168,7 +169,10 @@ async function generateExcel(ordersByName, monthLabel) {
     }
     grandTotal += totalPersonne;
 
-    const row = summarySheet.addRow([email, totalPersonne]);
+
+    const name = orders[0].name ?? orders[0].email ?? uid;
+
+    const row = summarySheet.addRow([name, totalPersonne]);
     const bgColor = summaryRowIndex % 2 === 0 ? "FFE8F4FB" : "FFFFFFFF";
     row.eachCell((cell) => {
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgColor } };

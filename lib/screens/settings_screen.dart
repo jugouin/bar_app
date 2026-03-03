@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bar_app/auth_gate.dart'; 
 import '../widgets/section_title.dart';
 import '../widgets/styled_text_field.dart';
 import '../widgets/styled_button.dart';
@@ -31,8 +33,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _displayNameController.text = _user?.displayName ?? '';
     _emailController.text = _user?.email ?? '';
+    _loadNameFromFirestore();
+  }
+
+  Future<void> _loadNameFromFirestore() async {
+    if (_user == null) return;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user.uid)
+        .get();
+    if (mounted) {
+      _displayNameController.text = doc.data()?['name'] ?? '';
+    }
   }
 
   @override
@@ -56,6 +69,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _logout() async {
     await FirebaseAuth.instance.signOut();
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const AuthGate()),
+        (route) => false,
+      );
+    }
   }
 
   Future<bool> _reauthenticate(String password) async {
@@ -79,7 +98,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     setState(() => _loadingName = true);
     try {
-      await _user!.updateDisplayName(_displayNameController.text.trim());
+      final newName = _displayNameController.text.trim();
+
+      // Mettre à jour Auth + Firestore users
+      await _user!.updateDisplayName(newName);
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user.uid)
+          .update({'name': newName});
+
+      // Mettre à jour toutes les commandes existantes
+      final orders = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('uid', isEqualTo: _user.uid)
+          .get();
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in orders.docs) {
+        batch.update(doc.reference, {'name': newName});
+      }
+      await batch.commit();
       _showSnack("Nom mis à jour avec succès !");
     } catch (e) {
       _showSnack("Erreur : ${e.toString()}", error: true);
@@ -104,8 +141,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
     try {
-      await _user!.verifyBeforeUpdateEmail(_emailController.text.trim());
-      _showSnack("Email de vérification envoyé à ${_emailController.text.trim()}");
+      final newEmail = _emailController.text.trim();
+
+      // Mettre à jour Auth (avec vérification)
+      await _user!.verifyBeforeUpdateEmail(newEmail);
+
+      // Mettre à jour Firestore users + commandes existantes
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user.uid)
+          .update({'email': newEmail});
+
+      final orders = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('uid', isEqualTo: _user.uid)
+          .get();
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in orders.docs) {
+        batch.update(doc.reference, {'email': newEmail});
+      }
+      await batch.commit();
+
+      _showSnack("Email de vérification envoyé à $newEmail");
     } catch (e) {
       _showSnack("Erreur : ${e.toString()}", error: true);
     } finally {

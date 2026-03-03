@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import '../models/product.dart';
 import '../models/order.dart';
 import '../data/product_catalog.dart';
@@ -118,8 +119,17 @@ Future<void> _validateOrder() async {
     setState(() => _loadingOrder = true);
 
     try {
+      // Récupérer le name depuis Firestore
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final name = doc.data()?['name'] ?? '';
+
       final order = Order(
-        email: user.email!, // <-- corrigé
+        uid: user.uid, 
+        email: user.email!,
+        name: name,
         total: _total,
         createdAt: DateTime.now(),
         items: _scannedProducts.entries.map((e) => OrderItem(
@@ -144,7 +154,7 @@ Future<void> _validateOrder() async {
       setState(() => _loadingOrder = false);
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final entries = _scannedProducts.entries.toList();

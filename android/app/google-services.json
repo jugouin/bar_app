@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:705752223630:android:8d19918299df3a9e8d5edf",
+        "mobilesdk_app_id": "1:705752223630:android:a310e5a3e53a96948d5edf",
         "android_client_info": {
-          "package_name": "com.cve"
+          "package_name": "com.club_voile_evian.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "705752223630-vjmc5lpcs851io1q03h9085mdd7d2tnn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA5dAeGmNSDym7xDthf1GH66toTxQmoH8w"
@@ -20,7 +25,55 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "705752223630-vjmc5lpcs851io1q03h9085mdd7d2tnn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "705752223630-3h1d4q2md5ut4tvficq8vchkjrqq2uch.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.cve"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:705752223630:android:8d19918299df3a9e8d5edf",
+        "android_client_info": {
+          "package_name": "com.cve"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "705752223630-vjmc5lpcs851io1q03h9085mdd7d2tnn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5dAeGmNSDym7xDthf1GH66toTxQmoH8w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "705752223630-vjmc5lpcs851io1q03h9085mdd7d2tnn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "705752223630-3h1d4q2md5ut4tvficq8vchkjrqq2uch.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.cve"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +84,12 @@
           "package_name": "com.example.bar_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "705752223630-vjmc5lpcs851io1q03h9085mdd7d2tnn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA5dAeGmNSDym7xDthf1GH66toTxQmoH8w"
@@ -39,7 +97,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "705752223630-vjmc5lpcs851io1q03h9085mdd7d2tnn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "705752223630-3h1d4q2md5ut4tvficq8vchkjrqq2uch.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.cve"
+              }
+            }
+          ]
         }
       }
     }

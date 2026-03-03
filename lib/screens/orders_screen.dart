@@ -26,10 +26,7 @@ class OrdersScreen extends StatelessWidget {
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('orders')
-              .where(
-                'email',
-                isEqualTo: FirebaseAuth.instance.currentUser!.email,
-              )
+              .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
