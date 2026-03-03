@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Email de réinitialisation envoyé à $email")),
+        SnackBar(content: Text("Email de réinitialisation envoyé à $email, pensez à vérifier dans les spams")),
       );
     } catch (e) {
       if (!mounted) return;
