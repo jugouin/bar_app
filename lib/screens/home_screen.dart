@@ -5,8 +5,14 @@ import 'package:bar_app/screens/qr_code_scanner_screen.dart';
 import 'package:bar_app/screens/settings_screen.dart';
 import 'package:bar_app/screens/orders_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
 
   void _openScanner(BuildContext context) {
     Navigator.push(
@@ -29,6 +35,15 @@ class HomeScreen extends StatelessWidget {
         .doc(uid)
         .get();
     return doc.data()?['name'] ?? '';
+  }
+
+  void _openSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+    ).then((_) {
+      setState(() {});
+    });
   }
 
   @override
@@ -95,12 +110,11 @@ class HomeScreen extends StatelessWidget {
                     label: "Commandes",
                     onTap: () => _openOrders(context),
                   ),
-                  _FooterButton(icon: Icons.settings, label: "Réglages", onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                    );
-                  }),
+                  _FooterButton(
+                    icon: Icons.settings,
+                    label: "Réglages",
+                    onTap: _openSettings,
+                  ),
                 ],
               ),
             ],
