@@ -100,14 +100,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final newName = _displayNameController.text.trim();
 
-      // Mettre à jour Auth + Firestore users
       await _user!.updateDisplayName(newName);
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_user.uid)
           .update({'name': newName});
 
-      // Mettre à jour toutes les commandes existantes
       final orders = await FirebaseFirestore.instance
           .collection('orders')
           .where('uid', isEqualTo: _user.uid)
@@ -143,10 +141,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final newEmail = _emailController.text.trim();
 
-      // Mettre à jour Auth (avec vérification)
       await _user!.verifyBeforeUpdateEmail(newEmail);
 
-      // Mettre à jour Firestore users + commandes existantes
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_user.uid)
@@ -196,6 +192,165 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } finally {
       setState(() => _loadingPassword = false);
     }
+  }
+
+  Future<void> _deleteAccount() async {
+    final passwordController = TextEditingController();
+    bool obscureDeletePassword = true;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: const [
+                  Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+                  SizedBox(width: 8),
+                  Text(
+                    "Supprimer mon compte",
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "Cette action est irréversible. Toutes vos données personnelles seront supprimées définitivement :",
+                      style: TextStyle(fontSize: 13),
+                    ),
+                    const SizedBox(height: 12),
+                    _rgpdBullet("Votre profil (nom, email)"),
+                    _rgpdBullet("Votre historique de commandes"),
+                    _rgpdBullet("Votre compte d'authentification"),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Confirmez avec votre mot de passe :",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscureDeletePassword,
+                      decoration: InputDecoration(
+                        hintText: "Mot de passe actuel",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscureDeletePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setDialogState(
+                            () => obscureDeletePassword = !obscureDeletePassword,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text("Annuler"),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text("Supprimer définitivement"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    final password = passwordController.text;
+
+    if (confirmed != true) return;
+
+    if (password.isEmpty) {
+      _showSnack("Mot de passe requis pour supprimer le compte", error: true);
+      return;
+    }
+
+    final ok = await _reauthenticate(password);
+    if (!ok) return;
+
+    try {
+      final uid = _user!.uid;
+      final db = FirebaseFirestore.instance;
+      final batch = db.batch();
+
+      batch.delete(db.collection('users').doc(uid));
+
+      final orders = await db
+          .collection('orders')
+          .where('uid', isEqualTo: uid)
+          .get();
+      for (final doc in orders.docs) {
+        batch.delete(doc.reference);
+      }
+
+      await batch.commit();
+      await _user.delete();
+
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthGate()),
+          (route) => false,
+        );
+        passwordController.dispose();
+      }
+    } catch (e) {
+      _showSnack(
+        "Erreur lors de la suppression : ${e.toString()}",
+        error: true,
+      );
+    }
+  }
+
+  /// Widget helper pour les puces RGPD dans la boîte de dialogue
+  Widget _rgpdBullet(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("• ", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
+        ],
+      ),
+    );
   }
 
   @override
@@ -310,6 +465,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
 
               const SizedBox(height: 60),
+
+              // Bouton Déconnexion
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
@@ -320,6 +477,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: _logout,
                 child: const Text("Déconnexion"),
               ),
+
+              const SizedBox(height: 16),
+
+              // Bouton Suppression de compte (RGPD)
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  foregroundColor: Colors.redAccent,
+                  side: const BorderSide(color: Colors.redAccent),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                onPressed: _deleteAccount,
+                icon: const Icon(Icons.delete_forever),
+                label: const Text(
+                  "Supprimer mon compte",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Mention RGPD discrète
+              Center(
+                child: Text(
+                  "Droit à l'effacement – Art. 17 RGPD",
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade500,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 40),
             ],
           ),
