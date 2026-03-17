@@ -1,1 +1,56 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"cve-bar","appId":"1:705752223630:android:204d8514e588fc608d5edf","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"cve-bar","appId":"1:705752223630:ios:2388fed626fa3bb28d5edf","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"cve-bar","appId":"1:705752223630:ios:2388fed626fa3bb28d5edf","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"cve-bar","configurations":{"android":"1:705752223630:android:204d8514e588fc608d5edf","ios":"1:705752223630:ios:2388fed626fa3bb28d5edf","macos":"1:705752223630:ios:2388fed626fa3bb28d5edf"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "cve-bar",
+          "appId": "1:705752223630:android:204d8514e588fc608d5edf",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "cve-bar",
+          "appId": "1:705752223630:ios:2388fed626fa3bb28d5edf",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "cve-bar",
+          "appId": "1:705752223630:ios:2388fed626fa3bb28d5edf",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "cve-bar",
+          "configurations": {
+            "android": "1:705752223630:android:204d8514e588fc608d5edf",
+            "ios": "1:705752223630:ios:2388fed626fa3bb28d5edf",
+            "macos": "1:705752223630:ios:2388fed626fa3bb28d5edf"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
+}

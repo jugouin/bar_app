@@ -47,15 +47,21 @@ class OrdersScreen extends StatelessWidget {
               );
             }
 
-            final orders = snapshot.data!.docs;
+            // ── Grouper les commandes par mois "2026-02" ──────────────
+            final ordersByMonth =
+                <String, List<Map<String, dynamic>>>{};
 
-            orders.sort((a, b) {
-              final aDate = DateTime.parse(
-                  (a.data() as Map<String, dynamic>)['createdAt']);
-              final bDate = DateTime.parse(
-                  (b.data() as Map<String, dynamic>)['createdAt']);
-              return bDate.compareTo(aDate);
-            });
+            for (final doc in snapshot.data!.docs) {
+              final data = doc.data() as Map<String, dynamic>;
+              final date = DateTime.parse(data['createdAt']);
+              final monthKey =
+                  '${date.year}-${date.month.toString().padLeft(2, '0')}';
+              ordersByMonth.putIfAbsent(monthKey, () => []).add(data);
+            }
+
+            // Trier les mois du plus récent au plus ancien
+            final sortedMonths = ordersByMonth.keys.toList()
+              ..sort((a, b) => b.compareTo(a));
 
             // ── Stream 2 : factures mensuelles (pour le statut) ───────
             return StreamBuilder<QuerySnapshot>(
@@ -64,13 +70,12 @@ class OrdersScreen extends StatelessWidget {
                   .where('uid', isEqualTo: uid)
                   .snapshots(),
               builder: (context, invoicesSnapshot) {
-                // Map "2025-03" -> données de la facture
+                // Map "2026-02" -> données de la facture la plus récente
                 final invoiceByMonth = <String, Map<String, dynamic>>{};
                 if (invoicesSnapshot.hasData) {
                   for (final doc in invoicesSnapshot.data!.docs) {
                     final inv = doc.data() as Map<String, dynamic>;
                     final month = inv['month'] as String? ?? '';
-                    // Garder la plus récente si plusieurs checkouts ce mois
                     if (!invoiceByMonth.containsKey(month) ||
                         (inv['createdAt'] as String).compareTo(
                                 invoiceByMonth[month]!['createdAt']) >
@@ -85,22 +90,28 @@ class OrdersScreen extends StatelessWidget {
                     horizontal: 30.0,
                     vertical: 20.0,
                   ),
-                  itemCount: orders.length,
+                  itemCount: sortedMonths.length,
                   itemBuilder: (context, index) {
-                    final data =
-                        orders[index].data() as Map<String, dynamic>;
-                    final items = data['items'] as List<dynamic>;
-                    final total = data['total'] as double;
-                    final date = DateTime.parse(data['createdAt']);
+                    final monthKey = sortedMonths[index];
+                    final monthOrders = ordersByMonth[monthKey]!;
 
-                    // Chercher la facture du mois de cette commande
-                    final monthKey =
-                        '${date.year}-${date.month.toString().padLeft(2, '0')}';
+                    // Total du mois = somme de toutes les commandes
+                    final monthTotal = monthOrders.fold<double>(
+                      0,
+                      (sum, o) => sum + (o['total'] as num).toDouble(),
+                    );
+
+                    // Statut de la facture associée à ce mois
                     final invoice = invoiceByMonth[monthKey];
                     final isPaid = invoice?['status'] == 'paid';
                     final isPending = invoice != null && !isPaid;
                     final checkoutUrl =
                         invoice?['checkoutUrl'] as String?;
+
+                    // Label lisible du mois
+                    final parts = monthKey.split('-');
+                    final monthLabel = _formatMonthFromParts(
+                        int.parse(parts[1]), int.parse(parts[0]));
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -112,12 +123,12 @@ class OrdersScreen extends StatelessWidget {
                         iconColor: const Color(0xFF2D5478),
                         collapsedIconColor: const Color(0xFF2D5478),
 
-                        // ── Titre + badge statut ───────────────────────
+                        // ── Titre du mois + badge statut ──────────────
                         title: Row(
                           children: [
                             Expanded(
                               child: Text(
-                                "Commande du ${_formatDate(date)}",
+                                _capitalize(monthLabel),
                                 style: const TextStyle(
                                   color: Color(0xFF2D5478),
                                   fontWeight: FontWeight.bold,
@@ -140,9 +151,9 @@ class OrdersScreen extends StatelessWidget {
                         ),
 
                         subtitle: Text(
-                          "Total : ${total.toStringAsFixed(2)} €",
-                          style:
-                              const TextStyle(color: Color(0xFF2D5478)),
+                          "Total : ${monthTotal.toStringAsFixed(2)} €"
+                          "  ·  ${monthOrders.length} commande${monthOrders.length > 1 ? 's' : ''}",
+                          style: const TextStyle(color: Color(0xFF2D5478)),
                         ),
 
                         children: [
@@ -154,35 +165,93 @@ class OrdersScreen extends StatelessWidget {
                               children: [
                                 const Divider(color: Color(0xFF2D5478)),
 
-                                // ── Lignes produits (identique à l'original) ──
-                                ...items.map((item) {
-                                  final i =
-                                      item as Map<String, dynamic>;
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 4),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "${i['productName']} x${i['quantity']}",
-                                          style: const TextStyle(
-                                              color: Color(0xFF2D5478)),
-                                        ),
-                                        Text(
-                                          "${(i['price'] * i['quantity']).toStringAsFixed(2)} €",
+                                // ── Détail de chaque commande du mois ─────
+                                ...monthOrders.map((order) {
+                                  final date = DateTime.parse(
+                                      order['createdAt']);
+                                  final items =
+                                      order['items'] as List<dynamic>;
+                                  final orderTotal =
+                                      (order['total'] as num).toDouble();
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Date de la commande
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 8, bottom: 4),
+                                        child: Text(
+                                          "Commande du ${_formatDate(date)}",
                                           style: const TextStyle(
                                             color: Color(0xFF2D5478),
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      // Lignes produits
+                                      ...items.map((item) {
+                                        final i = item
+                                            as Map<String, dynamic>;
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.symmetric(
+                                                  vertical: 3),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment
+                                                    .spaceBetween,
+                                            children: [
+                                              Text(
+                                                "${i['productName']} x${i['quantity']}",
+                                                style: const TextStyle(
+                                                    color:
+                                                        Color(0xFF2D5478),
+                                                    fontSize: 13),
+                                              ),
+                                              Text(
+                                                "${(i['price'] * i['quantity']).toStringAsFixed(2)} €",
+                                                style: const TextStyle(
+                                                  color: Color(0xFF2D5478),
+                                                  fontWeight:
+                                                      FontWeight.bold,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                      // Sous-total commande
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 4, bottom: 8),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              "Sous-total : ${orderTotal.toStringAsFixed(2)} €",
+                                              style: const TextStyle(
+                                                color: Color(0xFF2D5478),
+                                                fontSize: 12,
+                                                fontStyle: FontStyle.italic,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (order != monthOrders.last)
+                                        const Divider(
+                                            color: Color(0xFF2D5478),
+                                            thickness: 0.3),
+                                    ],
                                   );
                                 }),
 
-                                // ── Bouton payer (si facture en attente) ───────
+                                // ── Bouton payer (si facture en attente) ──
                                 if (isPending && checkoutUrl != null) ...[
                                   const SizedBox(height: 10),
                                   const Divider(color: Color(0xFF2D5478)),
@@ -198,8 +267,7 @@ class OrdersScreen extends StatelessWidget {
                                       icon: const Icon(Icons.payment,
                                           size: 16),
                                       label: Text(
-                                        "Payer la facture ${_formatMonth(date)}",
-                                      ),
+                                          "Payer la facture $monthLabel"),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:
                                             const Color(0xFF2D5478),
@@ -215,7 +283,7 @@ class OrdersScreen extends StatelessWidget {
                                   ),
                                 ],
 
-                                // ── Confirmation payée ─────────────────────────
+                                // ── Confirmation payée ─────────────────────
                                 if (isPaid) ...[
                                   const SizedBox(height: 10),
                                   const Divider(color: Color(0xFF2D5478)),
@@ -227,7 +295,7 @@ class OrdersScreen extends StatelessWidget {
                                           color: Colors.green.shade600),
                                       const SizedBox(width: 6),
                                       Text(
-                                        "Facture ${_formatMonth(date)} réglée",
+                                        "Facture $monthLabel réglée",
                                         style: TextStyle(
                                           color: Colors.green.shade600,
                                           fontSize: 12,
@@ -259,14 +327,17 @@ class OrdersScreen extends StatelessWidget {
         "${date.year}";
   }
 
-  String _formatMonth(DateTime date) {
+  String _formatMonthFromParts(int month, int year) {
     const months = [
       '',
       'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
       'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
     ];
-    return "${months[date.month]} ${date.year}";
+    return "${months[month]} $year";
   }
+
+  String _capitalize(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
 // ── Badge statut ────────────────────────────────────────────────────

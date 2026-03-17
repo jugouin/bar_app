@@ -1,4 +1,3 @@
-import * as functions from "firebase-functions";
 import admin from "firebase-admin";
 import ExcelJS from "exceljs";
 import { Resend } from "resend";
@@ -529,16 +528,7 @@ async function sendAdminEmail(
 // CLOUD FUNCTION PRINCIPALE — 1er du mois à 8h
 // ════════════════════════════════════════════════════════════════
 
-export const monthlyBilling = onSchedule(
-  {
-    schedule: "0 8 1 * *",
-    timeZone: "Europe/Paris",
-    region: "europe-west1",
-    timeoutSeconds: 300,
-    memory: "512MiB",
-  },
-  async (event) => {
- 
+async function runMonthlyBilling(): Promise<void> {
     const resend     = new Resend(process.env.RESEND_API_KEY!);
     const fromEmail  = process.env.MAIL_FROM!;
     const adminEmail = process.env.MAIL_ADMIN!;
@@ -676,7 +666,7 @@ export const monthlyBilling = onSchedule(
       `[monthlyBilling] Terminé — ${nbOk}/${checkoutResults.length} checkouts OK`
     );
     return;
-  });
+}
 
 // ════════════════════════════════════════════════════════════════
 // WEBHOOK HelloAsso → marquer facture comme payée
@@ -721,6 +711,18 @@ export const helloassoWebhook = onRequest(
 // ════════════════════════════════════════════════════════════════
 // FONCTION DE TEST (HTTP protégé)
 // ════════════════════════════════════════════════════════════════
+export const monthlyBilling = onSchedule(
+  {
+    schedule: "0 8 1 * *",
+    timeZone: "Europe/Paris",
+    region: "europe-west1",
+    timeoutSeconds: 300,
+    memory: "512MiB",
+  },
+  async (event) => {
+    await runMonthlyBilling();
+  }
+);
 
 export const monthlyBillingTest = onRequest(
   { region: "europe-west1" },
@@ -730,9 +732,10 @@ export const monthlyBillingTest = onRequest(
       return;
     }
     try {
-      await (monthlyBilling as any).run({});
+      await runMonthlyBilling(); // ✅ appelle directement la logique
       res.status(200).send("Test terminé avec succès");
     } catch (err: any) {
       res.status(500).send("Erreur : " + err?.message);
     }
-  });
+  }
+);
