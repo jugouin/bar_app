@@ -709,6 +709,96 @@ export const helloassoWebhook = onRequest(
   });
 
 // ════════════════════════════════════════════════════════════════
+// GET /events → liste les formulaires HelloAsso de l'orga
+// ════════════════════════════════════════════════════════════════
+
+export const getEvents = onRequest(
+  { region: "europe-west1" },
+  async (req, res) => {
+    // CORS pour Flutter
+    res.set("Access-Control-Allow-Origin", "*");
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+
+    try {
+      const token = await getHelloAssoToken();
+      const orgSlug = process.env.HELLOASSO_ORG_SLUG!;
+
+      // Récupère tous les formulaires de l'organisation
+      // (events, adhesions, don, crowdfunding...)
+      const response = await fetch(
+        `https://api.helloasso.com/v5/organizations/${orgSlug}/forms?states=Public&pageSize=50`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await response.json();
+      res.status(200).json(data);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// ════════════════════════════════════════════════════════════════
+// POST /createEventCheckout → crée un checkout pour un événement
+// ════════════════════════════════════════════════════════════════
+
+export const createEventCheckout = onRequest(
+  { region: "europe-west1" },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    if (req.method !== "POST") { res.status(405).send("Method Not Allowed"); return; }
+
+    try {
+      const { formSlug, totalCents, email, firstName, lastName, eventTitle } = req.body;
+
+      if (!formSlug || !totalCents || !email) {
+        res.status(400).json({ error: "Paramètres manquants" });
+        return;
+      }
+
+      const token = await getHelloAssoToken();
+      const orgSlug = process.env.HELLOASSO_ORG_SLUG!;
+
+      const response = await fetch(
+        `https://api.helloasso.com/v5/organizations/${orgSlug}/checkouts`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            totalAmount: totalCents,
+            initialAmount: totalCents,
+            itemName: eventTitle ?? "Inscription événement",
+            containsDonation: false,
+            backUrl:    process.env.HELLOASSO_BACK_URL!,
+            returnUrl:  process.env.HELLOASSO_RETURN_URL!,
+            errorUrl:   process.env.HELLOASSO_ERROR_URL!,
+            payer: { email, firstName, lastName },
+            metadata: { formSlug },
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!data.redirectUrl) {
+        res.status(500).json({ error: "Checkout échoué", detail: data });
+        return;
+      }
+
+      res.status(200).json({ checkoutUrl: data.redirectUrl });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// ════════════════════════════════════════════════════════════════
 // FONCTION DE TEST (HTTP protégé)
 // ════════════════════════════════════════════════════════════════
 export const monthlyBilling = onSchedule(
