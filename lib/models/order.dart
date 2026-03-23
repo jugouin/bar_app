@@ -24,7 +24,8 @@ class OrderItem {
 class Order {
   final String uid; 
   final String email;
-  final String name;
+  final String firstName;
+  final String lastName;
   final List<OrderItem> items;
   final double total;
   final DateTime createdAt;
@@ -32,7 +33,8 @@ class Order {
   Order({
     required this.uid,
     required this.email,
-    required this.name,
+    required this.firstName,
+    required this.lastName,
     required this.items,
     required this.total,
     required this.createdAt
@@ -41,7 +43,8 @@ class Order {
   Map<String, dynamic> toMap() => {
     'uid': uid,
     'email': email,
-    'name': name,
+    'firstName': firstName,
+    'lastName': lastName,
     'items': items.map((i) => i.toMap()).toList(),
     'total': total,
     'createdAt': createdAt.toIso8601String(),

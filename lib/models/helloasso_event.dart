@@ -1,4 +1,4 @@
-import '../data/events_catalog.dart'; // pour EventType
+enum EventType { regateHabitable, regateVoileLegere, mobilisation }
 
 class HelloAssoEvent {
   final String id;
@@ -8,7 +8,6 @@ class HelloAssoEvent {
   final DateTime dateStart;
   final DateTime? dateEnd;
   final String? horaire;
-  final double prix; // 0 = gratuit
 
   HelloAssoEvent({
     required this.id,
@@ -18,48 +17,52 @@ class HelloAssoEvent {
     required this.dateStart,
     this.dateEnd,
     this.horaire,
-    this.prix = 0,
   });
 
-  bool get isGratuit => prix == 0;
   bool get isMultiDay =>
       dateEnd != null && dateEnd!.isAfter(dateStart);
 
   factory HelloAssoEvent.fromJson(Map<String, dynamic> json) {
-    // Mapper le type HelloAsso vers EventType
-    final formType = (json['formType'] as String?)?.toLowerCase() ?? '';
-    EventType type;
-    if (formType.contains('event')) {
-      type = EventType.regateHabitable; // adapter selon vos types
-    } else if (formType.contains('membership')) {
-      type = EventType.mobilisation;
-    } else {
-      type = EventType.regateVoileLegere;
-    }
+    final startDate = DateTime.parse(json['startDate'] as String);
+    final endDate   = json['endDate'] != null
+        ? DateTime.parse(json['endDate'] as String)
+        : null;
 
-    // Dates
-    final startStr = json['startDate'] as String?;
-    final endStr   = json['endDate']   as String?;
-    final dateStart = startStr != null
-        ? DateTime.parse(startStr)
-        : DateTime.now();
-    final dateEnd = endStr != null ? DateTime.parse(endStr) : null;
-
-    // Prix : prendre le premier tier ou 0
-    double prix = 0;
-    final tiers = json['tiers'] as List<dynamic>?;
-    if (tiers != null && tiers.isNotEmpty) {
-      prix = ((tiers.first['price'] as num?)?.toDouble() ?? 0) / 100;
+    // Horaire si même jour
+    String? horaire;
+    if (endDate != null &&
+        startDate.day == endDate.day &&
+        startDate.month == endDate.month) {
+      horaire =
+          '${_pad(startDate.hour)}:${_pad(startDate.minute)} - '
+          '${_pad(endDate.hour)}:${_pad(endDate.minute)}';
     }
 
     return HelloAssoEvent(
-      id:        json['id']?.toString() ?? '',
+      id:        json['formSlug'] as String? ?? '',
       slug:      json['formSlug'] as String? ?? '',
       title:     json['title']    as String? ?? '',
-      type:      type,
-      dateStart: dateStart,
-      dateEnd:   dateEnd,
-      prix:      prix,
+      type:      _mapType(json['description'] as String? ?? ''),
+      dateStart: DateTime(startDate.year, startDate.month, startDate.day),
+      dateEnd:   endDate != null
+          ? DateTime(endDate.year, endDate.month, endDate.day)
+          : null,
+      horaire:   horaire,
     );
   }
+
+  static EventType _mapType(String description) {
+    final d = description.toLowerCase();
+    if (d.contains('habitable') || d.contains('vh') || d.contains('suprise')) {
+      return EventType.regateHabitable;
+    }
+    if (d.contains('l\u00e9gere') || d.contains('legere') || d.contains('vl') ||
+        d.contains('optimist') || d.contains('laser') ||
+        d.contains('d\u00e9riveur') || d.contains('deriveur')) {
+      return EventType.regateVoileLegere;
+    }
+    return EventType.mobilisation;
+  }
+
+  static String _pad(int n) => n.toString().padLeft(2, '0');
 }

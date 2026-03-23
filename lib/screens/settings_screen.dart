@@ -22,7 +22,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  bool _loadingName = false;
   bool _loadingEmail = false;
   bool _loadingPassword = false;
 
@@ -44,7 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         .doc(_user.uid)
         .get();
     if (mounted) {
-      _displayNameController.text = doc.data()?['name'] ?? '';
+      _displayNameController.text = doc.data()?['firstName'] ?? '';
     }
   }
 
@@ -88,38 +87,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       _showSnack("Mot de passe actuel incorrect", error: true);
       return false;
-    }
-  }
-
-  Future<void> _updateDisplayName() async {
-    if (_displayNameController.text.trim().isEmpty) {
-      _showSnack("Le nom ne peut pas être vide", error: true);
-      return;
-    }
-    setState(() => _loadingName = true);
-    try {
-      final newName = _displayNameController.text.trim();
-
-      await _user!.updateDisplayName(newName);
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user.uid)
-          .update({'name': newName});
-
-      final orders = await FirebaseFirestore.instance
-          .collection('orders')
-          .where('uid', isEqualTo: _user.uid)
-          .get();
-      final batch = FirebaseFirestore.instance.batch();
-      for (final doc in orders.docs) {
-        batch.update(doc.reference, {'name': newName});
-      }
-      await batch.commit();
-      _showSnack("Nom mis à jour avec succès !");
-    } catch (e) {
-      _showSnack("Erreur : ${e.toString()}", error: true);
-    } finally {
-      setState(() => _loadingName = false);
     }
   }
 
@@ -380,23 +347,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   backgroundColor: const Color.fromARGB(255, 150, 201, 222),
                   child: const Icon(Icons.sailing, size: 40),
                 ),
-              ),
-
-              const SizedBox(height: 30),
-
-              // Section Nom
-              SectionTitle(title: "Nom"),
-              const SizedBox(height: 10),
-              StyledTextField(
-                controller: _displayNameController,
-                icon: Icons.person,
-                label: '',
-              ),
-              const SizedBox(height: 10),
-              StyledButton(
-                label: "Mettre à jour le nom",
-                loading: _loadingName,
-                onPressed: _updateDisplayName,
               ),
 
               const SizedBox(height: 30),

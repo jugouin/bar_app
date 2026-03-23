@@ -124,12 +124,14 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           .collection('users')
           .doc(user.uid)
           .get();
-      final name = doc.data()?['name'] ?? '';
+      final firstName = doc.data()?['firstName'] ?? '';
+      final lastName = doc.data()?['lastName'] ?? '';
 
       final order = Order(
         uid: user.uid,
         email: user.email!,
-        name: name,
+        firstName: firstName,
+        lastName: lastName,
         total: _total,
         createdAt: DateTime.now(),
         items: _scannedProducts.entries

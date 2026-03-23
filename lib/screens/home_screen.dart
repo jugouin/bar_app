@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection('users')
         .doc(uid)
         .get();
-    return doc.data()?['name'] ?? '';
+    return doc.data()?['firstName'] ?? '';
   }
 
   void _openInfo() {
@@ -75,9 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
               FutureBuilder<String>(
                 future: _getUserName(),
                 builder: (context, snapshot) {
-                  final name = snapshot.data ?? '';
+                  final firstName = snapshot.data ?? '';
                   return Text(
-                    "Bonjour $name !",
+                    "Bonjour $firstName !",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: const Color(0xFF2D5478),
                     ),

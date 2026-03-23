@@ -137,7 +137,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await user.sendEmailVerification();
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'name': _displayNameController.text.trim(),
+        'firstName': _displayNameController.text.trim(),
+        'lastName': _displayNameController.text.trim(),
         'email': _emailController.text.trim(),
       });
 
