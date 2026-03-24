@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:bar_app/screens/event_webview_screen.dart';
 import '../models/helloasso_event.dart';
 import '../services/helloasso_service.dart';
 
@@ -26,15 +26,25 @@ class _RegistrationSheetState extends State<RegistrationSheet> {
 
   Future<void> _inscrire() async {
     setState(() => _loading = true);
-    try {
+        try {
       final url = await widget.service.createCheckout(widget.event);
       if (!mounted) return;
+
       Navigator.pop(context);
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => EventWebViewScreen(
+          eventUrl:   url,
+          eventTitle: widget.event.title,
+        ),
+      ));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $e')),
+        SnackBar(
+          content: Text('Erreur : $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _loading = false);

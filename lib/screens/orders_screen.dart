@@ -131,7 +131,7 @@ class OrdersScreen extends StatelessWidget {
                             else if (isPending)
                               const _StatusBadge(
                                 label: "En attente",
-                                color: _blue,
+                                color: Color.fromARGB(255, 235, 130, 1),  
                                 icon: Icons.schedule,
                               ),
                           ],
@@ -259,8 +259,6 @@ class OrdersScreen extends StatelessWidget {
                                     width: double.infinity,
                                     child: ElevatedButton.icon(
                                       onPressed: () {
-                                        // Récupérer l'ID Firestore de la facture
-                                        // (il faut passer l'invoiceId depuis le StreamBuilder)
                                         final invoiceId = invoicesSnapshot.data!.docs
                                             .firstWhere((d) =>
                                                 (d.data() as Map<String, dynamic>)['month'] == monthKey)

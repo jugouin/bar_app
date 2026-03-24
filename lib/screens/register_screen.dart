@@ -14,7 +14,8 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _displayNameController = TextEditingController();
+  final _displayFirstNameController = TextEditingController();
+  final _displayLastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -25,7 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _displayNameController.dispose();
+    _displayFirstNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -66,8 +67,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SectionTitle(title: "Informations"),
               const SizedBox(height: 10),
               StyledTextField(
-                controller: _displayNameController,
-                label: "Nom prénom",
+                controller: _displayFirstNameController,
+                label: "Prénom",
+                icon: Icons.person,
+              ),
+              const SizedBox(height: 10),
+              StyledTextField(
+                controller: _displayLastNameController,
+                label: "Nom",
                 icon: Icons.person,
               ),
               const SizedBox(height: 10),
@@ -133,18 +140,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final user = credential.user!;
 
       // Mettre à jour le displayName dans Firebase Auth
-      await user.updateDisplayName(_displayNameController.text.trim());
+      await user.updateDisplayName(_displayFirstNameController.text.trim());
       await user.sendEmailVerification();
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'firstName': _displayNameController.text.trim(),
-        'lastName': _displayNameController.text.trim(),
+        'firstName': _displayFirstNameController.text.trim(),
+        'lastName': _displayLastNameController.text.trim(),
         'email': _emailController.text.trim(),
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Inscription réussie !")),
-      );
       
       if (context.mounted) {
         Navigator.pushReplacement(

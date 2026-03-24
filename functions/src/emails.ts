@@ -32,7 +32,7 @@ export async function sendClientEmail(
               <tr>
                 <td style="background:#2D5478;padding:32px 40px;">
                   <p style="margin:0;color:#fff;font-size:22px;font-weight:bold;">
-                    Votre facture mensuelle
+                    Votre facture mensuelle du bar
                   </p>
                   <p style="margin:6px 0 0;color:#96c9de;font-size:16px;">
                     ${monthLabel}
