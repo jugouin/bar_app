@@ -1,3 +1,4 @@
+import 'package:bar_app/utils/date.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -162,6 +163,110 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _deleteAccount() async {
+    final pendingInvoices = await FirebaseFirestore.instance
+      .collection('monthly_invoices')
+      .where('uid', isEqualTo: _user!.uid)
+      .where('status', isEqualTo: 'pending')
+      .get();
+
+  if (pendingInvoices.docs.isNotEmpty && context.mounted) {
+    final unpaidMonths = pendingInvoices.docs
+      .map((d) { final month = d.data()['month'] as String? ?? '';
+        return month.isNotEmpty ? formatMonthKey(month) : '?';
+      })
+      .toSet()
+      .toList()
+      ..sort();
+
+    final monthsText = unpaidMonths.join(', ');
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.receipt_long, color: Color(0xFF2D5478)),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                "Factures impayées",
+                style: TextStyle(
+                  color: Color(0xFF2D5478),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Vous ne pouvez pas supprimer votre compte tant que des factures sont en attente de paiement.",
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F7FB),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF2D5478).withOpacity(0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Mois impayés :",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Color(0xFF2D5478),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    monthsText,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Réglez vos factures depuis l'onglet \"Mes commandes\" puis réessayez.",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2D5478),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Compris"),
+          ),
+        ],
+      ),
+    );
+    return;
+  }
+
     final passwordController = TextEditingController();
     bool obscureDeletePassword = true;
 
@@ -285,6 +390,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .where('uid', isEqualTo: uid)
           .get();
       for (final doc in orders.docs) {
+        batch.delete(doc.reference);
+      }
+      
+      final invoices = await db
+        .collection('monthly_invoices')
+        .where('uid', isEqualTo: uid)
+        .get();
+      for (final doc in invoices.docs) {
         batch.delete(doc.reference);
       }
 

@@ -1,3 +1,4 @@
+import 'package:bar_app/utils/date.dart';
 import 'package:flutter/material.dart';
 import 'package:bar_app/screens/event_webview_screen.dart';
 import '../models/helloasso_event.dart';
@@ -111,7 +112,7 @@ class _RegistrationSheetState extends State<RegistrationSheet> {
           // Date
           EventInfoRow(
             icon: Icons.calendar_today,
-            label: _formatDateRange(event),
+            label: formatDateRange(event.dateStart, event.dateEnd),
           ),
           // Horaire (optionnel)
           if (event.horaire != null) ...[
@@ -156,17 +157,6 @@ class _RegistrationSheetState extends State<RegistrationSheet> {
       ),
     );
   }
-
-  String _formatDateRange(HelloAssoEvent e) {
-    final start = _formatDate(e.dateStart);
-    if (!e.isMultiDay) return start;
-    return '$start → ${_formatDate(e.dateEnd!)}';
-  }
-
-  String _formatDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/'
-      '${d.month.toString().padLeft(2, '0')}/'
-      '${d.year}';
 }
 
 // ── Ligne d'info réutilisable ────────────────────────────────────────

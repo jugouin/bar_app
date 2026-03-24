@@ -1,3 +1,4 @@
+import 'package:bar_app/utils/date.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -97,8 +98,7 @@ class OrdersScreen extends StatelessWidget {
                     final paidAt     = invoice?['paidAt'] as String?;
 
                     final parts      = monthKey.split('-');
-                    final monthLabel = _formatMonthFromParts(
-                        int.parse(parts[1]), int.parse(parts[0]));
+                    final monthLabel = formatMonthYear(int.parse(parts[1]), int.parse(parts[0]));
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -164,7 +164,7 @@ class OrdersScreen extends StatelessWidget {
                                         padding: const EdgeInsets.only(
                                             top: 8, bottom: 4),
                                         child: Text(
-                                          "Commande du ${_formatDate(date)}",
+                                          "Commande du ${formatDate(date)}",
                                           style: const TextStyle(
                                             color: _blue,
                                             fontWeight: FontWeight.w600,
@@ -238,7 +238,7 @@ class OrdersScreen extends StatelessWidget {
                                     icon: Icons.check_circle,
                                     iconColor: Colors.green.shade600,
                                     label: paidAt != null
-                                        ? "Payée le ${_formatDate(DateTime.parse(paidAt))}"
+                                        ? "Payée le ${formatDate(DateTime.parse(paidAt))}"
                                         : "Facture $monthLabel réglée",
                                     labelColor: Colors.green.shade600,
                                   )
@@ -296,20 +296,6 @@ class OrdersScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) =>
-      "${date.day.toString().padLeft(2, '0')}/"
-      "${date.month.toString().padLeft(2, '0')}/"
-      "${date.year}";
-
-  String _formatMonthFromParts(int month, int year) {
-    const months = [
-      '',
-      'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
-    ];
-    return "${months[month]} $year";
   }
 
   String _capitalize(String s) =>

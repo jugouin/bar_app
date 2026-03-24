@@ -89,6 +89,28 @@ export async function runMonthlyBilling(): Promise<void> {
       });
 
       console.log(`[Checkout] OK pour ${user.email} — ${checkout.redirectUrl}`);
+      const existingInvoice = await db.collection("monthly_invoices")
+        .where("uid", "==", user.uid)
+        .where("month", "==", monthKey)
+        .where("status", "==", "pending")
+        .limit(1)
+        .get();
+
+        if (!existingInvoice.empty) {
+        console.log(`[Checkout] Facture déjà existante pour ${user.email} — ${monthKey}, on skip`);
+        const existing = existingInvoice.docs[0].data();
+        checkoutResults.push({
+            uid:         user.uid,
+            email:       user.email,
+            firstName:   user.firstName,
+            lastName:    user.lastName,
+            total:       user.total,
+            checkoutId:  existing.checkoutId,
+            checkoutUrl: existing.checkoutUrl,
+            status:      "ok",
+        });
+        continue;
+        }
 
       // Sauvegarder dans Firestore
       const invoiceRef = await db.collection("monthly_invoices").add({

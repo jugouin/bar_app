@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/helloasso_event.dart';
+import '../utils/date.dart';
 
 class EventCard extends StatelessWidget {
   final HelloAssoEvent event;
@@ -171,11 +172,6 @@ class _DateBlock extends StatelessWidget {
     required this.color,
   });
 
-  static const _months = [
-    '', 'JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUN',
-    'JUL', 'AOÛ', 'SEP', 'OCT', 'NOV', 'DÉC',
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -191,7 +187,7 @@ class _DateBlock extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          _months[month],
+          trigramMonths[month],
           style: TextStyle(
             color: color,
             fontSize: 11,
