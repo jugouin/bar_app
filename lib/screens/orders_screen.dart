@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'pay_invoice_screen.dart';
 
 class OrdersScreen extends StatelessWidget {
   const OrdersScreen({super.key});
@@ -253,32 +253,36 @@ class OrdersScreen extends StatelessWidget {
                                   ),
 
                                 // ── Bouton payer ──────────────────────
-                                if (isPending && checkoutUrl != null) ...[
+                                if (isPending && invoice != null) ...[
                                   const SizedBox(height: 10),
                                   SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton.icon(
-                                      onPressed: () => launchUrl(
-                                        Uri.parse(checkoutUrl),
-                                        mode: LaunchMode.externalApplication,
-                                      ),
+                                      onPressed: () {
+                                        // Récupérer l'ID Firestore de la facture
+                                        // (il faut passer l'invoiceId depuis le StreamBuilder)
+                                        final invoiceId = invoicesSnapshot.data!.docs
+                                            .firstWhere((d) =>
+                                                (d.data() as Map<String, dynamic>)['month'] == monthKey)
+                                            .id;
+
+                                        Navigator.of(context).push(MaterialPageRoute(
+                                          builder: (_) => PayInvoiceScreen(invoiceId: invoiceId),
+                                        ));
+                                      },
                                       icon: const Icon(Icons.payment, size: 16),
-                                      label: Text(
-                                          "Payer la facture $monthLabel"),
+                                      label: Text('Payer la facture $monthLabel'),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: _blue,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(10),
                                         ),
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 10),
+                                        padding: const EdgeInsets.symmetric(vertical: 10),
                                       ),
                                     ),
                                   ),
                                 ],
-
                                 const SizedBox(height: 4),
                               ],
                             ),

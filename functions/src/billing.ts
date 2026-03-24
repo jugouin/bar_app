@@ -1,4 +1,4 @@
-import admin from "firebase-admin";
+import admin from "./firebase-admin";
 import { Resend } from "resend";
 import { Order, UserGroup, CheckoutResult } from "./types";
 import { getHelloAssoToken, createCheckout } from "./helloasso";
@@ -91,7 +91,7 @@ export async function runMonthlyBilling(): Promise<void> {
       console.log(`[Checkout] OK pour ${user.email} — ${checkout.redirectUrl}`);
 
       // Sauvegarder dans Firestore
-      await db.collection("monthly_invoices").add({
+      const invoiceRef = await db.collection("monthly_invoices").add({
         uid:         user.uid,
         email:       user.email,
         firstName:   user.firstName,
@@ -105,14 +105,13 @@ export async function runMonthlyBilling(): Promise<void> {
         createdAt:   new Date().toISOString(),
       });
 
-      // Envoyer l'email client
-      console.log(`[Email] Envoi à ${user.email}...`);
+      const deepLink = `https://cve-bar.web.app/pay?invoiceId=${invoiceRef.id}`;
       await sendClientEmail(resend, fromEmail, {
         to:          user.email,
         firstName:  user.firstName,
         monthLabel,
         total:       user.total,
-        checkoutUrl: checkout.redirectUrl,
+        checkoutUrl: deepLink,
         year,
       });
       console.log(`[Email] OK pour ${user.email}`);

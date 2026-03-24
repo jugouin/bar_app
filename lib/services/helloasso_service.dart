@@ -84,4 +84,26 @@ class HelloAssoService {
     return (jsonDecode(res.body) as Map<String, dynamic>)['checkoutUrl']
         as String;
   }
+
+  // ── Créer un checkout "frais" pour une facture mensuelle (bar) ─────────
+  Future<String> generateInvoiceCheckout(String invoiceId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('Non connecté');
+
+    final idToken = await user.getIdToken();
+
+    final res = await http.get(
+      Uri.parse('$_baseUrl/generateInvoiceCheckout?invoiceId=$invoiceId'),
+      headers: {
+        'Authorization': 'Bearer $idToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (res.statusCode != 200) {
+      throw Exception('Erreur génération checkout : ${res.body}');
+    }
+
+    return (jsonDecode(res.body) as Map<String, dynamic>)['checkoutUrl'] as String;
+  }
 }

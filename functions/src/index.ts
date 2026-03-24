@@ -1,7 +1,8 @@
-import admin from "firebase-admin";
+import admin from "./firebase-admin";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onRequest } from "firebase-functions/https";
 import { runMonthlyBilling } from "./billing";
+export { generateInvoiceCheckout } from "./generateInvoiceCheckout";
 
 if (!admin.apps.length) admin.initializeApp();
 

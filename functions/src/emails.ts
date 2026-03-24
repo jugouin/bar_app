@@ -18,7 +18,7 @@ export async function sendClientEmail(
   const result = await resend.emails.send({
     from:    fromEmail,
     to,
-    subject: `Votre facture ${monthLabel} — ${total.toFixed(2)} €`,
+    subject: `Facture mensuelle du bar du CVE`,
     html: `
       <!DOCTYPE html>
       <html lang="fr">
@@ -34,7 +34,7 @@ export async function sendClientEmail(
                   <p style="margin:0;color:#fff;font-size:22px;font-weight:bold;">
                     Votre facture mensuelle
                   </p>
-                  <p style="margin:6px 0 0;color:#96c9de;font-size:14px;">
+                  <p style="margin:6px 0 0;color:#96c9de;font-size:16px;">
                     ${monthLabel}
                   </p>
                 </td>
@@ -45,7 +45,7 @@ export async function sendClientEmail(
                     Bonjour <strong>${firstName}</strong>,
                   </p>
                   <p style="margin:0 0 28px;color:#4a6a82;font-size:15px;line-height:1.6;">
-                    Votre facture pour <strong>${monthLabel}</strong> est disponible.
+                    Votre facture de <strong>${monthLabel}</strong> est disponible.
                   </p>
                   <table width="100%" cellpadding="0" cellspacing="0"
                          style="background:#f0f7fb;border-radius:12px;margin-bottom:32px;">
@@ -71,8 +71,14 @@ export async function sendClientEmail(
                       </td>
                     </tr>
                   </table>
+                  <p style="margin:28px 0 0;color:#4a6a82;font-size:15px;line-height:1.6;">
+                  HelloAsso ajoute automatiquement une contribution pour soutenir leur projet, si vous ne souhaitez pas participer vous pouvez modifier la contribution automatique.
+                  </p>
                   <p style="margin:28px 0 0;color:#8aacbf;font-size:12px;line-height:1.5;">
                     Ce lien est personnel et sécurisé.
+                  </p>
+                  <p style="margin:28px 0 0;color:#8aacbf;font-size:12px;line-height:1.5;">
+                    L'équipe du CVE.
                   </p>
                 </td>
               </tr>

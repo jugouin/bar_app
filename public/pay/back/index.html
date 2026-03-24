@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paiement annulé</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f0f7fb;
+      font-family: Georgia, serif;
+      text-align: center;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 32px;
+      box-shadow: 0 4px 24px rgba(45,84,120,0.10);
+      max-width: 320px;
+    }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h1 { color: #2D5478; font-size: 20px; margin: 0 0 8px; }
+    p  { color: #4a6a82; font-size: 14px; margin: 0 0 24px; }
+    a  {
+      display: inline-block;
+      background: #2D5478;
+      color: white;
+      padding: 12px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">↩️</div>
+    <h1>Paiement annulé</h1>
+    <p>Vous avez annulé le paiement.<br>Vous pouvez retourner dans l'application.</p>
+    <a href="cve://pay/back">Retour à l'app</a>
+  </div>
+  <script>
+    window.location.href = "cve://pay/back";
+  </script>
+</body>
+</html>
