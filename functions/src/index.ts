@@ -3,6 +3,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onRequest } from "firebase-functions/https";
 import { runMonthlyBilling } from "./billing";
 export { generateInvoiceCheckout } from "./generateInvoiceCheckout";
+export { sendWelcomeEmail } from "./sendWelcomeEmail";
 
 if (!admin.apps.length) admin.initializeApp();
 

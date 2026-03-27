@@ -37,8 +37,6 @@ class _EventWebViewScreenState extends State<EventWebViewScreen> {
           debugPrint('❌ WebView error: ${error.description}');
         },
         onNavigationRequest: (request) {
-          // Laisser naviguer librement sur helloasso.com
-          // Bloquer les redirections externes non souhaitées
           final uri = Uri.tryParse(request.url);
           if (uri != null &&
               !uri.host.contains('helloasso.com') &&

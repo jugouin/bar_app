@@ -119,7 +119,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     setState(() => _loadingOrder = true);
 
     try {
-      // Récupérer le name depuis Firestore
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)

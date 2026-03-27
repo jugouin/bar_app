@@ -3,8 +3,8 @@ export async function getHelloAssoToken(): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      grant_type:    "client_credentials",
-      client_id:     process.env.HELLOASSO_CLIENT_ID!,
+      grant_type: "client_credentials",
+      client_id: process.env.HELLOASSO_CLIENT_ID!,
       client_secret: process.env.HELLOASSO_CLIENT_SECRET!,
     }),
   });
@@ -35,20 +35,20 @@ export async function createCheckout(
     firstName: string;
     lastName: string;
     month: string;
-  }
+  },
 ): Promise<{ id: string; redirectUrl: string }> {
   const body = JSON.stringify({
-    backUrl:          process.env.HELLOASSO_BACK_URL!,
-    errorUrl:         process.env.HELLOASSO_ERROR_URL!,
-    returnUrl:        process.env.HELLOASSO_RETURN_URL!,
-    totalAmount:      params.totalCents,
-    initialAmount:    params.totalCents,
-    itemName:         params.label,
+    backUrl: process.env.HELLOASSO_BACK_URL!,
+    errorUrl: process.env.HELLOASSO_ERROR_URL!,
+    returnUrl: process.env.HELLOASSO_RETURN_URL!,
+    totalAmount: params.totalCents,
+    initialAmount: params.totalCents,
+    itemName: params.label,
     containsDonation: false,
     payer: {
-      email:     params.email,
+      email: params.email,
       firstName: params.firstName,
-      lastName:  params.lastName,
+      lastName: params.lastName,
     },
     metadata: { month: params.month },
   });
@@ -60,11 +60,11 @@ export async function createCheckout(
     {
       method: "POST",
       headers: {
-        Authorization:  `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body,
-    }
+    },
   );
 
   const text = await res.text();

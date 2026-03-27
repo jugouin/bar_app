@@ -23,7 +23,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  bool _loadingEmail = false;
   bool _loadingPassword = false;
 
   bool _obscureCurrent = true;
@@ -88,49 +87,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       _showSnack("Mot de passe actuel incorrect", error: true);
       return false;
-    }
-  }
-
-  Future<void> _updateEmail() async {
-    if (_emailController.text.trim().isEmpty) {
-      _showSnack("L'email ne peut pas être vide", error: true);
-      return;
-    }
-    if (_currentPasswordController.text.isEmpty) {
-      _showSnack("Entrez votre mot de passe actuel pour changer l'email", error: true);
-      return;
-    }
-    setState(() => _loadingEmail = true);
-    final ok = await _reauthenticate(_currentPasswordController.text);
-    if (!ok) {
-      setState(() => _loadingEmail = false);
-      return;
-    }
-    try {
-      final newEmail = _emailController.text.trim();
-
-      await _user!.verifyBeforeUpdateEmail(newEmail);
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user.uid)
-          .update({'email': newEmail});
-
-      final orders = await FirebaseFirestore.instance
-          .collection('orders')
-          .where('uid', isEqualTo: _user.uid)
-          .get();
-      final batch = FirebaseFirestore.instance.batch();
-      for (final doc in orders.docs) {
-        batch.update(doc.reference, {'email': newEmail});
-      }
-      await batch.commit();
-
-      _showSnack("Email de vérification envoyé à $newEmail");
-    } catch (e) {
-      _showSnack("Erreur : ${e.toString()}", error: true);
-    } finally {
-      setState(() => _loadingEmail = false);
     }
   }
 
@@ -460,33 +416,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   backgroundColor: const Color.fromARGB(255, 150, 201, 222),
                   child: const Icon(Icons.sailing, size: 40),
                 ),
-              ),
-
-              const SizedBox(height: 30),
-
-              // Section Email
-              SectionTitle(title: "Adresse email"),
-              const SizedBox(height: 10),
-              StyledTextField(
-                controller: _emailController,
-                icon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
-                label: '',
-              ),
-              const SizedBox(height: 10),
-              StyledTextField(
-                controller: _currentPasswordController,
-                label: "Mot de passe actuel (requis)",
-                icon: Icons.lock,
-                obscure: _obscureCurrent,
-                onToggleObscure: () =>
-                    setState(() => _obscureCurrent = !_obscureCurrent),
-              ),
-              const SizedBox(height: 10),
-              StyledButton(
-                label: "Mettre à jour l'email",
-                loading: _loadingEmail,
-                onPressed: _updateEmail,
               ),
 
               const SizedBox(height: 30),
