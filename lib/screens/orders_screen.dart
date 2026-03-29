@@ -94,7 +94,6 @@ class OrdersScreen extends StatelessWidget {
                     final invoice    = invoiceByMonth[monthKey];
                     final isPaid     = invoice?['status'] == 'paid';
                     final isPending  = invoice != null && !isPaid;
-                    final checkoutUrl = invoice?['checkoutUrl'] as String?;
                     final paidAt     = invoice?['paidAt'] as String?;
 
                     final parts      = monthKey.split('-');
@@ -253,7 +252,7 @@ class OrdersScreen extends StatelessWidget {
                                   ),
 
                                 // ── Bouton payer ──────────────────────
-                                if (isPending && invoice != null) ...[
+                                if (isPending) ...[
                                   const SizedBox(height: 10),
                                   SizedBox(
                                     width: double.infinity,

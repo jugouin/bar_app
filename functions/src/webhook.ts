@@ -12,28 +12,28 @@ export const helloassoWebhook = onRequest(
     }
 
     const event = req.body;
+    console.log("[Webhook] eventType:", event?.eventType);
 
-    if (event.eventType === "Payment" && event.data?.state === "Authorized") {
-      const checkoutId: string =
-        event.data?.checkoutIntentId ?? event.data?.order?.id ?? "";
+    if (event.eventType === "Order") {
+      const invoiceId: string = event.metadata?.invoiceId ?? "";
+      const checkoutIntentId: string = String(event.data?.checkoutIntentId ?? "");
 
-      if (checkoutId) {
-        const snap = await db.collection("monthly_invoices")
-          .where("checkoutId", "==", checkoutId)
-          .get();
+      console.log("[Webhook] invoiceId:", invoiceId);
+      console.log("[Webhook] checkoutIntentId:", checkoutIntentId);
 
-        if (!snap.empty) {
-          const batch = db.batch();
-          snap.docs.forEach((doc) =>
-            batch.update(doc.ref, {
-              status: "paid",
-              paidAt: new Date().toISOString(),
-            })
-          );
-          await batch.commit();
-          console.log(`${snap.size} facture(s) payée(s) — checkoutId=${checkoutId}`);
-        }
+      if (!invoiceId) {
+        console.warn("[Webhook] Pas d'invoiceId dans les metadata, on skip");
+        res.status(200).send("OK");
+        return;
       }
+
+      await db.collection("monthly_invoices").doc(invoiceId).update({
+        status: "paid",
+        paidAt: new Date().toISOString(),
+        checkoutIntentId,
+      });
+
+      console.log(`[Webhook] Facture ${invoiceId} marquée payée`);
     }
 
     res.status(200).send("OK");

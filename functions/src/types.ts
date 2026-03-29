@@ -30,7 +30,7 @@ export interface CheckoutResult {
   firstName: string;
   lastName: string;
   total: number;
-  checkoutId: string;
+  checkoutIntentId: string ;
   checkoutUrl: string;
   status: "ok" | "error";
   error?: string;

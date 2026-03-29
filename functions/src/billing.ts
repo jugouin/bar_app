@@ -89,16 +89,6 @@ export async function runMonthlyBilling(): Promise<void> {
     );
 
     try {
-      const checkout = await createCheckout(token, orgSlug, {
-        totalCents,
-        label,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        month: monthKey,
-      });
-
-      console.log(`[Checkout] OK pour ${user.email} — ${checkout.redirectUrl}`);
       const existingInvoice = await db
         .collection("monthly_invoices")
         .where("uid", "==", user.uid)
@@ -118,14 +108,13 @@ export async function runMonthlyBilling(): Promise<void> {
           firstName: user.firstName,
           lastName: user.lastName,
           total: user.total,
-          checkoutId: existing.checkoutId,
+          checkoutIntentId: existing.checkoutIntentId,
           checkoutUrl: existing.checkoutUrl,
           status: "ok",
         });
         continue;
       }
 
-      // Sauvegarder dans Firestore
       const invoiceRef = await db.collection("monthly_invoices").add({
         uid: user.uid,
         email: user.email,
@@ -134,10 +123,27 @@ export async function runMonthlyBilling(): Promise<void> {
         month: monthKey,
         total: user.total,
         orderIds: user.orderIds,
-        checkoutId: checkout.id,
-        checkoutUrl: checkout.redirectUrl,
+        checkoutIntentId: "",
+        checkoutUrl: "",
         status: "pending",
         createdAt: new Date().toISOString(),
+      });
+
+      const checkout = await createCheckout(token, orgSlug, {
+        totalCents,
+        label,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        month: monthKey,
+        invoiceId: invoiceRef.id,
+      });
+
+      console.log(`[Checkout] OK pour ${user.email} — ${checkout.redirectUrl}`);
+
+      await invoiceRef.update({
+        checkoutIntentId: checkout.id,
+        checkoutUrl: checkout.redirectUrl,
       });
 
       const deepLink = `https://cve-bar.web.app/pay?invoiceId=${invoiceRef.id}`;
@@ -157,7 +163,7 @@ export async function runMonthlyBilling(): Promise<void> {
         firstName: user.firstName,
         lastName: user.lastName,
         total: user.total,
-        checkoutId: checkout.id,
+        checkoutIntentId: checkout.id,
         checkoutUrl: checkout.redirectUrl,
         status: "ok",
       });
@@ -174,7 +180,7 @@ export async function runMonthlyBilling(): Promise<void> {
         firstName: user.firstName,
         lastName: user.lastName,
         total: user.total,
-        checkoutId: "",
+        checkoutIntentId: "",
         checkoutUrl: "",
         status: "error",
         error: err?.message ?? String(err),
@@ -188,6 +194,7 @@ export async function runMonthlyBilling(): Promise<void> {
     byUser,
     checkoutResults,
     monthLabel,
+    monthKey,
     orgSlug,
   );
   console.log("[Excel] OK");

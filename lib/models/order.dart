@@ -1,5 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-
 class OrderItem {
   final String productKey;
   final String productName;

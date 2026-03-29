@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../services/helloasso_service.dart';
+import '../widgets/payment_confirm_dialog.dart';
 
 class PayInvoiceScreen extends StatefulWidget {
   final String invoiceId;
@@ -92,47 +93,14 @@ void _initWebView(String url) {
         'Accept-Language': 'fr-FR,fr;q=0.9',
       },
     );
-}
+  }
   void _onPaymentSuccess() {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check_circle, color: Colors.green, size: 56),
-            const SizedBox(height: 16),
-            const Text(
-              'Paiement effectué !',
-              style: TextStyle(
-                color: _blue,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Votre facture a bien été réglée.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // ferme le dialog
-              Navigator.of(context).pop(); // ferme PayInvoiceScreen
-            },
-            child: const Text('Retour', style: TextStyle(color: _blue)),
-          ),
-        ],
-      ),
-    );
+      builder: (_) => PaymentConfirmDialog(invoiceId: widget.invoiceId),
+    ).then((_) => Navigator.of(context).pop());
   }
-
   void _onPaymentCanceled() {
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(

@@ -91,7 +91,7 @@ class _InfoScreenState extends State<InfoScreen> {
             // ── Filtres ─────────────────────────────────────────────
             EventFilterBar(
               selected: _selectedFilter,
-              onSelected: (type) => setState(() => _selectedFilter = type as EventType?),
+              onSelected: (type) => setState(() => _selectedFilter = type),
               typeConfig: _typeConfig,
             ),
             const SizedBox(height: 4),

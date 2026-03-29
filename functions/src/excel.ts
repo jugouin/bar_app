@@ -54,6 +54,7 @@ export async function generateExcel(
   byUser: Record<string, UserGroup>,
   checkoutResults: CheckoutResult[],
   monthLabel: string,
+  monthKey: string,
   orgSlug: string,
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
@@ -147,7 +148,7 @@ export async function generateExcel(
     const invoiceSnap = await db
       .collection("monthly_invoices")
       .where("email", "==", result.email)
-      .where("checkoutId", "==", result.checkoutId)
+      .where("checkoutIntentId", "==", result.checkoutIntentId)
       .limit(1)
       .get();
 
@@ -222,7 +223,7 @@ export async function generateExcel(
   unpaidSheet.mergeCells("A1:G1");
   styleTitle(
     unpaidSheet.getCell("A1"),
-    "Factures impayées — tous mois confondus",
+    "Factures impayées",
     RED_DARK,
   );
   unpaidSheet.getRow(1).height = 34;
@@ -241,6 +242,7 @@ export async function generateExcel(
 
   const pendingSnap = await db
     .collection("monthly_invoices")
+    .where("month", "<", monthKey)
     .where("status", "==", "pending")
     .get();
 

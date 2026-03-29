@@ -73,12 +73,13 @@ export const generateInvoiceCheckout = functions.onRequest(
         firstName: invoice.firstName,
         lastName: invoice.lastName,
         month: monthKey,
+        invoiceId: invoiceId,
       });
 
       // Mettre à jour l'URL dans Firestore (optionnel, pour l'admin)
       await invoiceDoc.ref.update({
         checkoutUrl: checkout.redirectUrl,
-        checkoutId: checkout.id,
+        checkoutIntentId: checkout.id,
         checkoutRefreshedAt: new Date().toISOString(),
       });
 

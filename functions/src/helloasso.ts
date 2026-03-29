@@ -35,6 +35,7 @@ export async function createCheckout(
     firstName: string;
     lastName: string;
     month: string;
+    invoiceId: string;
   },
 ): Promise<{ id: string; redirectUrl: string }> {
   const body = JSON.stringify({
@@ -50,7 +51,7 @@ export async function createCheckout(
       firstName: params.firstName,
       lastName: params.lastName,
     },
-    metadata: { month: params.month },
+    metadata: { month: params.month, invoiceId: params.invoiceId },
   });
 
   console.log(`[Checkout] Requête pour ${params.email}:`, body);

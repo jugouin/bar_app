@@ -335,7 +335,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!ok) return;
 
     try {
-      final uid = _user!.uid;
+      final uid = _user.uid;
       final db = FirebaseFirestore.instance;
       final batch = db.batch();
 
