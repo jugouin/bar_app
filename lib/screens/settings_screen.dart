@@ -1,3 +1,4 @@
+import 'package:bar_app/utils/date.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,8 +23,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  bool _loadingName = false;
-  bool _loadingEmail = false;
   bool _loadingPassword = false;
 
   bool _obscureCurrent = true;
@@ -44,7 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         .doc(_user.uid)
         .get();
     if (mounted) {
-      _displayNameController.text = doc.data()?['name'] ?? '';
+      _displayNameController.text = doc.data()?['firstName'] ?? '';
     }
   }
 
@@ -91,81 +90,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _updateDisplayName() async {
-    if (_displayNameController.text.trim().isEmpty) {
-      _showSnack("Le nom ne peut pas être vide", error: true);
-      return;
-    }
-    setState(() => _loadingName = true);
-    try {
-      final newName = _displayNameController.text.trim();
-
-      await _user!.updateDisplayName(newName);
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user.uid)
-          .update({'name': newName});
-
-      final orders = await FirebaseFirestore.instance
-          .collection('orders')
-          .where('uid', isEqualTo: _user.uid)
-          .get();
-      final batch = FirebaseFirestore.instance.batch();
-      for (final doc in orders.docs) {
-        batch.update(doc.reference, {'name': newName});
-      }
-      await batch.commit();
-      _showSnack("Nom mis à jour avec succès !");
-    } catch (e) {
-      _showSnack("Erreur : ${e.toString()}", error: true);
-    } finally {
-      setState(() => _loadingName = false);
-    }
-  }
-
-  Future<void> _updateEmail() async {
-    if (_emailController.text.trim().isEmpty) {
-      _showSnack("L'email ne peut pas être vide", error: true);
-      return;
-    }
-    if (_currentPasswordController.text.isEmpty) {
-      _showSnack("Entrez votre mot de passe actuel pour changer l'email", error: true);
-      return;
-    }
-    setState(() => _loadingEmail = true);
-    final ok = await _reauthenticate(_currentPasswordController.text);
-    if (!ok) {
-      setState(() => _loadingEmail = false);
-      return;
-    }
-    try {
-      final newEmail = _emailController.text.trim();
-
-      await _user!.verifyBeforeUpdateEmail(newEmail);
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user.uid)
-          .update({'email': newEmail});
-
-      final orders = await FirebaseFirestore.instance
-          .collection('orders')
-          .where('uid', isEqualTo: _user.uid)
-          .get();
-      final batch = FirebaseFirestore.instance.batch();
-      for (final doc in orders.docs) {
-        batch.update(doc.reference, {'email': newEmail});
-      }
-      await batch.commit();
-
-      _showSnack("Email de vérification envoyé à $newEmail");
-    } catch (e) {
-      _showSnack("Erreur : ${e.toString()}", error: true);
-    } finally {
-      setState(() => _loadingEmail = false);
-    }
-  }
-
   Future<void> _updatePassword() async {
     if (_newPasswordController.text != _confirmPasswordController.text) {
       _showSnack("Les mots de passe ne correspondent pas", error: true);
@@ -195,6 +119,110 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _deleteAccount() async {
+    final pendingInvoices = await FirebaseFirestore.instance
+      .collection('monthly_invoices')
+      .where('uid', isEqualTo: _user!.uid)
+      .where('status', isEqualTo: 'pending')
+      .get();
+
+  if (pendingInvoices.docs.isNotEmpty && context.mounted) {
+    final unpaidMonths = pendingInvoices.docs
+      .map((d) { final month = d.data()['month'] as String? ?? '';
+        return month.isNotEmpty ? formatMonthKey(month) : '?';
+      })
+      .toSet()
+      .toList()
+      ..sort();
+
+    final monthsText = unpaidMonths.join(', ');
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.receipt_long, color: Color(0xFF2D5478)),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                "Factures impayées",
+                style: TextStyle(
+                  color: Color(0xFF2D5478),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Vous ne pouvez pas supprimer votre compte tant que des factures sont en attente de paiement.",
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F7FB),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF2D5478).withOpacity(0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Mois impayés :",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Color(0xFF2D5478),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    monthsText,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Réglez vos factures depuis l'onglet \"Mes commandes\" puis réessayez.",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2D5478),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Compris"),
+          ),
+        ],
+      ),
+    );
+    return;
+  }
+
     final passwordController = TextEditingController();
     bool obscureDeletePassword = true;
 
@@ -307,7 +335,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!ok) return;
 
     try {
-      final uid = _user!.uid;
+      final uid = _user.uid;
       final db = FirebaseFirestore.instance;
       final batch = db.batch();
 
@@ -318,6 +346,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .where('uid', isEqualTo: uid)
           .get();
       for (final doc in orders.docs) {
+        batch.delete(doc.reference);
+      }
+      
+      final invoices = await db
+        .collection('monthly_invoices')
+        .where('uid', isEqualTo: uid)
+        .get();
+      for (final doc in invoices.docs) {
         batch.delete(doc.reference);
       }
 
@@ -380,50 +416,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   backgroundColor: const Color.fromARGB(255, 150, 201, 222),
                   child: const Icon(Icons.sailing, size: 40),
                 ),
-              ),
-
-              const SizedBox(height: 30),
-
-              // Section Nom
-              SectionTitle(title: "Nom"),
-              const SizedBox(height: 10),
-              StyledTextField(
-                controller: _displayNameController,
-                icon: Icons.person,
-                label: '',
-              ),
-              const SizedBox(height: 10),
-              StyledButton(
-                label: "Mettre à jour le nom",
-                loading: _loadingName,
-                onPressed: _updateDisplayName,
-              ),
-
-              const SizedBox(height: 30),
-
-              // Section Email
-              SectionTitle(title: "Adresse email"),
-              const SizedBox(height: 10),
-              StyledTextField(
-                controller: _emailController,
-                icon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
-                label: '',
-              ),
-              const SizedBox(height: 10),
-              StyledTextField(
-                controller: _currentPasswordController,
-                label: "Mot de passe actuel (requis)",
-                icon: Icons.lock,
-                obscure: _obscureCurrent,
-                onToggleObscure: () =>
-                    setState(() => _obscureCurrent = !_obscureCurrent),
-              ),
-              const SizedBox(height: 10),
-              StyledButton(
-                label: "Mettre à jour l'email",
-                loading: _loadingEmail,
-                onPressed: _updateEmail,
               ),
 
               const SizedBox(height: 30),

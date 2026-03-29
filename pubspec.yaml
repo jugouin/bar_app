@@ -36,12 +36,16 @@ dependencies:
   cupertino_icons: ^1.0.8
   firebase_core: ^4.4.0
   cloud_firestore: ^6.1.2
+  cloud_functions: ^6.0.6
   firebase_auth: ^6.1.4
   file_picker: ^10.3.10
   csv: ^7.1.0
   mobile_scanner: ^6.0.0
   firebase_app_check: ^0.4.1+4
   firebase_crashlytics: ^5.0.7
+  url_launcher: ^6.3.0
+  app_links: ^6.0.0
+  webview_flutter: ^4.10.0
 
 
 dev_dependencies:

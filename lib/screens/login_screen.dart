@@ -26,9 +26,10 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView(
+        child: SingleChildScrollView( 
           padding: const EdgeInsets.all(30.0),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 150),
               Image(image: AssetImage('lib/assets/logo_cve.png'), height: 150),
@@ -164,11 +165,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> login() async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+    final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+    if (!mounted) return;
+    if (!credential.user!.emailVerified) {
+      await FirebaseAuth.instance.signOut();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Veuillez vérifier votre email avant de vous connecter."),
+          backgroundColor: Colors.orange,
+        ),
       );
-      if (!mounted) return;
+      return;
+    }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),

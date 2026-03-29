@@ -1,0 +1,53 @@
+name: Facturation mensuelle
+
+on:
+  schedule:
+    - cron: '0 8 1 * *'   # Le 1er de chaque mois à 8h
+  workflow_dispatch:        # Déclenchement manuel
+
+jobs:
+  # ── Job 1 : déployer les Cloud Functions (si modifiées) ────────────
+  deploy-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Créer functions/.env
+        run: |
+          cat <<EOF > functions/.env
+          HELLOASSO_CLIENT_ID=${{ secrets.HELLOASSO_CLIENT_ID }}
+          HELLOASSO_CLIENT_SECRET=${{ secrets.HELLOASSO_CLIENT_SECRET }}
+          HELLOASSO_ORG_SLUG=${{ secrets.HELLOASSO_ORG_SLUG }}
+          HELLOASSO_BACK_URL=${{ secrets.HELLOASSO_BACK_URL }}
+          HELLOASSO_RETURN_URL=${{ secrets.HELLOASSO_RETURN_URL }}
+          HELLOASSO_ERROR_URL=${{ secrets.HELLOASSO_ERROR_URL }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          MAIL_FROM=${{ secrets.MAIL_FROM }}
+          ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+          TEST_SECRET=${{ secrets.TEST_SECRET }}
+          EOF
+
+      - name: Installer les dépendances
+        run: cd functions && npm ci
+
+      - name: Déployer sur Firebase
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only functions:monthlyBilling,functions:helloassoWebhook
+        env:
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+  # ── Job 2 : déclencher la facturation via la Cloud Function ────────
+  trigger-billing:
+    runs-on: ubuntu-latest
+    needs: deploy-functions   # Attend que le déploiement soit terminé
+    steps:
+      - name: Appeler monthlyBillingTest
+        run: |
+          curl -f -X POST \
+            "https://europe-west1-${{ secrets.FIREBASE_PROJECT_ID }}.cloudfunctions.net/monthlyBillingTest" \
+            -H "x-test-secret: ${{ secrets.TEST_SECRET }}"

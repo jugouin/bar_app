@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bar_app/screens/qr_code_scanner_screen.dart';
+import 'package:bar_app/screens/info_screen.dart';
 import 'package:bar_app/screens/settings_screen.dart';
 import 'package:bar_app/screens/orders_screen.dart';
 
@@ -34,7 +35,16 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection('users')
         .doc(uid)
         .get();
-    return doc.data()?['name'] ?? '';
+    return doc.data()?['firstName'] ?? '';
+  }
+
+  void _openInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const InfoScreen()),
+    ).then((_) {
+      setState(() {});
+    });
   }
 
   void _openSettings() {
@@ -65,9 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
               FutureBuilder<String>(
                 future: _getUserName(),
                 builder: (context, snapshot) {
-                  final name = snapshot.data ?? '';
+                  final firstName = snapshot.data ?? '';
                   return Text(
-                    "Bonjour $name !",
+                    "Bonjour $firstName !",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: const Color(0xFF2D5478),
                     ),
@@ -104,7 +114,11 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _FooterButton(icon: Icons.home, label: "Accueil", onTap: () {}),
+                  _FooterButton(
+                    icon: Icons.anchor,
+                    label: "Info",
+                    onTap: _openInfo,
+                  ),
                   _FooterButton(
                     icon: Icons.receipt_long,
                     label: "Commandes",

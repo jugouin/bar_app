@@ -81,7 +81,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   double get _total => _scannedProducts.values
       .fold(0, (sum, e) => sum + e.product.price * e.quantity);
 
-Future<void> _validateOrder() async {
+  Future<void> _validateOrder() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || user.email == null) return;
 
@@ -119,39 +119,110 @@ Future<void> _validateOrder() async {
     setState(() => _loadingOrder = true);
 
     try {
-      // Récupérer le name depuis Firestore
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
-      final name = doc.data()?['name'] ?? '';
+      final firstName = doc.data()?['firstName'] ?? '';
+      final lastName = doc.data()?['lastName'] ?? '';
 
       final order = Order(
-        uid: user.uid, 
+        uid: user.uid,
         email: user.email!,
-        name: name,
+        firstName: firstName,
+        lastName: lastName,
         total: _total,
         createdAt: DateTime.now(),
-        items: _scannedProducts.entries.map((e) => OrderItem(
-          productKey: e.key,
-          productName: e.value.product.name,
-          price: e.value.product.price,
-          quantity: e.value.quantity,
-        )).toList(),
+        items: _scannedProducts.entries
+            .map((e) => OrderItem(
+                  productKey: e.key,
+                  productName: e.value.product.name,
+                  price: e.value.product.price,
+                  quantity: e.value.quantity,
+                ))
+            .toList(),
       );
+      final confirmedTotal = _total;
 
       await _orderService.saveOrder(order);
       setState(() => _scannedProducts.clear());
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Commande validée avec succès !")),
+      // ── Retour à l'accueil après confirmation ──────────────────────
+      if (!mounted) return;
+
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.green.shade600,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Commande validée !",
+                style: TextStyle(
+                  color: Color(0xFF2D5478),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Votre commande de ${confirmedTotal.toStringAsFixed(2)} € a bien été enregistrée.",
+                style: const TextStyle(
+                  color: Color(0xFF2D5478),
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2D5478),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    "Retour à l'accueil",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       );
+
+      Navigator.of(context).popUntil((route) => route.isFirst);
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur : ${e.toString()}")),
+        const SnackBar(content: Text("Erreur lors de la validation de la commande")),
       );
     } finally {
-      setState(() => _loadingOrder = false);
+      if (mounted) setState(() => _loadingOrder = false);
     }
   }
 
