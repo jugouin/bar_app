@@ -49,8 +49,8 @@ class OrdersScreen extends StatelessWidget {
             // Grouper par mois
             final ordersByMonth = <String, List<Map<String, dynamic>>>{};
             for (final doc in snapshot.data!.docs) {
-              final data     = doc.data() as Map<String, dynamic>;
-              final date     = DateTime.parse(data['createdAt']);
+              final data = doc.data() as Map<String, dynamic>;
+              final date = DateTime.parse(data['createdAt']);
               final monthKey =
                   '${date.year}-${date.month.toString().padLeft(2, '0')}';
               ordersByMonth.putIfAbsent(monthKey, () => []).add(data);
@@ -70,11 +70,13 @@ class OrdersScreen extends StatelessWidget {
                 final invoiceByMonth = <String, Map<String, dynamic>>{};
                 if (invoicesSnapshot.hasData) {
                   for (final doc in invoicesSnapshot.data!.docs) {
-                    final inv   = doc.data() as Map<String, dynamic>;
+                    final inv = doc.data() as Map<String, dynamic>;
                     final month = inv['month'] as String? ?? '';
                     if (!invoiceByMonth.containsKey(month) ||
                         (inv['createdAt'] as String).compareTo(
-                                invoiceByMonth[month]!['createdAt']) > 0) {
+                              invoiceByMonth[month]!['createdAt'],
+                            ) >
+                            0) {
                       invoiceByMonth[month] = inv;
                     }
                   }
@@ -82,22 +84,29 @@ class OrdersScreen extends StatelessWidget {
 
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 30.0, vertical: 20.0),
+                    horizontal: 30.0,
+                    vertical: 20.0,
+                  ),
                   itemCount: sortedMonths.length,
                   itemBuilder: (context, index) {
-                    final monthKey    = sortedMonths[index];
+                    final monthKey = sortedMonths[index];
                     final monthOrders = ordersByMonth[monthKey]!;
 
                     final monthTotal = monthOrders.fold<double>(
-                      0, (sum, o) => sum + (o['total'] as num).toDouble());
+                      0,
+                      (sum, o) => sum + (o['total'] as num).toDouble(),
+                    );
 
-                    final invoice    = invoiceByMonth[monthKey];
-                    final isPaid     = invoice?['status'] == 'paid';
-                    final isPending  = invoice != null && !isPaid;
-                    final paidAt     = invoice?['paidAt'] as String?;
+                    final invoice = invoiceByMonth[monthKey];
+                    final isPaid = invoice?['status'] == 'paid';
+                    final isPending = invoice != null && !isPaid;
+                    final paidAt = invoice?['paidAt'] as String?;
 
-                    final parts      = monthKey.split('-');
-                    final monthLabel = formatMonthYear(int.parse(parts[1]), int.parse(parts[0]));
+                    final parts = monthKey.split('-');
+                    final monthLabel = formatMonthYear(
+                      int.parse(parts[1]),
+                      int.parse(parts[0]),
+                    );
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -106,7 +115,7 @@ class OrdersScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: ExpansionTile(
-                        iconColor:          _blue,
+                        iconColor: _blue,
                         collapsedIconColor: _blue,
 
                         // ── Titre + badge ────────────────────────────
@@ -130,7 +139,7 @@ class OrdersScreen extends StatelessWidget {
                             else if (isPending)
                               const _StatusBadge(
                                 label: "En attente",
-                                color: Color.fromARGB(255, 235, 130, 1),  
+                                color: Color.fromARGB(255, 235, 130, 1),
                                 icon: Icons.schedule,
                               ),
                           ],
@@ -152,16 +161,22 @@ class OrdersScreen extends StatelessWidget {
 
                                 // ── Détail commandes ─────────────────
                                 ...monthOrders.map((order) {
-                                  final date  = DateTime.parse(order['createdAt']);
+                                  final date = DateTime.parse(
+                                    order['createdAt'],
+                                  );
                                   final items = order['items'] as List<dynamic>;
-                                  final orderTotal = (order['total'] as num).toDouble();
+                                  final orderTotal = (order['total'] as num)
+                                      .toDouble();
 
                                   return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.only(
-                                            top: 8, bottom: 4),
+                                          top: 8,
+                                          bottom: 4,
+                                        ),
                                         child: Text(
                                           "Commande du ${formatDate(date)}",
                                           style: const TextStyle(
@@ -175,7 +190,8 @@ class OrdersScreen extends StatelessWidget {
                                         final i = item as Map<String, dynamic>;
                                         return Padding(
                                           padding: const EdgeInsets.symmetric(
-                                              vertical: 3),
+                                            vertical: 3,
+                                          ),
                                           child: Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
@@ -183,7 +199,9 @@ class OrdersScreen extends StatelessWidget {
                                               Text(
                                                 "${i['productName']} x${i['quantity']}",
                                                 style: const TextStyle(
-                                                    color: _blue, fontSize: 13),
+                                                  color: _blue,
+                                                  fontSize: 13,
+                                                ),
                                               ),
                                               Text(
                                                 "${(i['price'] * i['quantity']).toStringAsFixed(2)} €",
@@ -199,7 +217,9 @@ class OrdersScreen extends StatelessWidget {
                                       }),
                                       Padding(
                                         padding: const EdgeInsets.only(
-                                            top: 4, bottom: 8),
+                                          top: 4,
+                                          bottom: 8,
+                                        ),
                                         child: Align(
                                           alignment: Alignment.centerRight,
                                           child: Text(
@@ -214,7 +234,9 @@ class OrdersScreen extends StatelessWidget {
                                       ),
                                       if (order != monthOrders.last)
                                         const Divider(
-                                            color: _blue, thickness: 0.3),
+                                          color: _blue,
+                                          thickness: 0.3,
+                                        ),
                                     ],
                                   );
                                 }),
@@ -227,9 +249,9 @@ class OrdersScreen extends StatelessWidget {
                                   // Pas encore de facture générée
                                   _InvoiceStatusRow(
                                     icon: Icons.hourglass_empty,
-                                    iconColor: _blue.withOpacity(0.4),
+                                    iconColor: _blue.withValues(alpha: 0.4),
                                     label: "Facture pas encore générée",
-                                    labelColor: _blue.withOpacity(0.5),
+                                    labelColor: _blue.withValues(alpha: 0.5),
                                   )
                                 else if (isPaid)
                                   // Facture payée
@@ -258,24 +280,43 @@ class OrdersScreen extends StatelessWidget {
                                     width: double.infinity,
                                     child: ElevatedButton.icon(
                                       onPressed: () {
-                                        final invoiceId = invoicesSnapshot.data!.docs
-                                            .firstWhere((d) =>
-                                                (d.data() as Map<String, dynamic>)['month'] == monthKey)
+                                        final invoiceId = invoicesSnapshot
+                                            .data!
+                                            .docs
+                                            .firstWhere(
+                                              (d) =>
+                                                  (d.data()
+                                                      as Map<
+                                                        String,
+                                                        dynamic
+                                                      >)['month'] ==
+                                                  monthKey,
+                                            )
                                             .id;
 
-                                        Navigator.of(context).push(MaterialPageRoute(
-                                          builder: (_) => PayInvoiceScreen(invoiceId: invoiceId),
-                                        ));
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => PayInvoiceScreen(
+                                              invoiceId: invoiceId,
+                                            ),
+                                          ),
+                                        );
                                       },
                                       icon: const Icon(Icons.payment, size: 16),
-                                      label: Text('Payer la facture $monthLabel'),
+                                      label: Text(
+                                        'Payer la facture $monthLabel',
+                                      ),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: _blue,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
-                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 10,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -353,9 +394,9 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

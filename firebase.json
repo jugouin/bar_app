@@ -2,10 +2,22 @@
   "hosting": {
     "public": "public",
     "rewrites": [
-      { "source": "/pay",        "destination": "/pay/index.html"        },
-      { "source": "/pay/return", "destination": "/pay/return/index.html" },
-      { "source": "/pay/back",   "destination": "/pay/back/index.html"   },
-      { "source": "/pay/error",  "destination": "/pay/error/index.html"  }
+      {
+        "source": "/pay",
+        "destination": "/pay/index.html"
+      },
+      {
+        "source": "/pay/return",
+        "destination": "/pay/return/index.html"
+      },
+      {
+        "source": "/pay/back",
+        "destination": "/pay/back/index.html"
+      },
+      {
+        "source": "/pay/error",
+        "destination": "/pay/error/index.html"
+      }
     ]
   },
   "flutter": {
@@ -61,5 +73,24 @@
         "npm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
-  ]
+  ],
+  "emulators": {
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "database": {
+      "port": 9000
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "ui": {
+      "enabled": true,
+      "port": 2000
+    },
+    "singleProjectMode": true
+  }
 }

@@ -204,7 +204,7 @@ class _SectionHeader extends StatelessWidget {
         label,
         style: TextStyle(
           color: muted
-              ? const Color(0xFF2D5478).withOpacity(0.45)
+              ? const Color(0xFF2D5478).withValues(alpha: 0.45)
               : const Color(0xFF2D5478),
           fontSize: 13,
           fontWeight: FontWeight.bold,

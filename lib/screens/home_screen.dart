@@ -42,18 +42,14 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const InfoScreen()),
-    ).then((_) {
-      setState(() {});
-    });
+    ).then((_) => setState(() {}));
   }
 
   void _openSettings() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SettingsScreen()),
-    ).then((_) {
-      setState(() {});
-    });
+    ).then((_) => setState(() {}));
   }
 
   @override
@@ -64,13 +60,16 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              const SizedBox(height: 40),
 
               const Image(
                 image: AssetImage('lib/assets/logo_cve.png'),
                 height: 150,
               ),
+
+              const SizedBox(height: 40),
 
               FutureBuilder<String>(
                 future: _getUserName(),
@@ -84,6 +83,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
+
+              const SizedBox(height: 40),
 
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -110,6 +111,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+
+              const Spacer(),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,

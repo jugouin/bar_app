@@ -1,4 +1,5 @@
 import 'package:bar_app/screens/home_screen.dart';
+import 'package:bar_app/utils/firebase_error.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
@@ -8,10 +9,10 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey();
 
   final FocusNode _focusNodePassword = FocusNode();
@@ -26,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView( 
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(30.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -92,6 +93,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Veuillez entrer votre mot de passe';
+                  }
+                  if (value.contains(' ')) {
+                    return 'Le mot de passe ne peut pas contenir d\'espaces';
                   }
                   if (value.length < 6) {
                     return 'Le mot de passe doit contenir au moins 6 caractères';
@@ -165,21 +169,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> login() async {
     try {
-    final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-    if (!mounted) return;
-    if (!credential.user!.emailVerified) {
-      await FirebaseAuth.instance.signOut();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Veuillez vérifier votre email avant de vous connecter."),
-          backgroundColor: Colors.orange,
-        ),
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
-      return;
-    }
+      if (!mounted) return;
+      if (!credential.user!.emailVerified) {
+        await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Veuillez vérifier votre email avant de vous connecter.",
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
 
       Navigator.pushReplacement(
         context,
@@ -187,18 +194,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      final msg = switch (e.code) {
-        'user-not-found'   => "Aucun compte associé à cet e-mail.",
-        'wrong-password'   => "Mot de passe incorrect.",
-        'invalid-email'    => "Adresse e-mail invalide.",
-        'user-disabled'    => "Ce compte a été désactivé.",
-        'too-many-requests'=> "Trop de tentatives. Réessayez plus tard.",
-        'invalid-credential' => "E-mail ou mot de passe incorrect.",
-        _                  => "Erreur de connexion : ${e.message}",
-      };
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg)),
-      );
+      final msg = FirebaseErrors.getMessage(e.code);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
   }
 
@@ -218,7 +215,11 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Email de réinitialisation envoyé à $email, pensez à vérifier dans les spams")),
+        SnackBar(
+          content: Text(
+            "Email de réinitialisation envoyé à $email, pensez à vérifier dans les spams",
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;

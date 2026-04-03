@@ -1,7 +1,6 @@
 import 'package:bar_app/models/helloasso_event.dart';
 import 'package:flutter/material.dart';
 
-
 class EventFilterBar extends StatelessWidget {
   final EventType? selected;
   final void Function(EventType?) onSelected;
@@ -72,17 +71,16 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? color : color.withOpacity(0.10),
+          color: isSelected ? color : color.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? color : color.withOpacity(0.3),
+            color: isSelected ? color : color.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14,
-                color: isSelected ? Colors.white : color),
+            Icon(icon, size: 14, color: isSelected ? Colors.white : color),
             const SizedBox(width: 6),
             Text(
               label,

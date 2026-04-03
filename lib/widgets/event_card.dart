@@ -37,13 +37,12 @@ class EventCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 // ── Bloc date ──────────────────────────────────────
                 Container(
                   width: event.isMultiDay ? 110 : 52,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: cfg.color.withOpacity(0.12),
+                    color: cfg.color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: event.isMultiDay
@@ -58,7 +57,8 @@ class EventCard extends StatelessWidget {
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 4),
+                                horizontal: 4,
+                              ),
                               child: Text(
                                 '→',
                                 style: TextStyle(
@@ -123,13 +123,18 @@ class EventCard extends StatelessWidget {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.access_time,
-                                    size: 13, color: _blue),
+                                const Icon(
+                                  Icons.access_time,
+                                  size: 13,
+                                  color: _blue,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   event.horaire!,
                                   style: const TextStyle(
-                                      color: _blue, fontSize: 12),
+                                    color: _blue,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
@@ -148,7 +153,7 @@ class EventCard extends StatelessWidget {
                     child: Icon(
                       Icons.arrow_forward_ios,
                       size: 12,
-                      color: _blue.withOpacity(0.4),
+                      color: _blue.withValues(alpha: 0.4),
                     ),
                   ),
               ],

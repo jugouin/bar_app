@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class PaymentConfirmDialog extends StatefulWidget {
   final String invoiceId;
-  const PaymentConfirmDialog({required this.invoiceId});
+  const PaymentConfirmDialog({super.key, required this.invoiceId });
 
   @override
   State<PaymentConfirmDialog> createState() => PaymentConfirmDialogState();

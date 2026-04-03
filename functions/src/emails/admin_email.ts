@@ -66,7 +66,7 @@ export async function sendAdminEmail(
                           style="background:#f0f7fb;border-radius:12px;padding:16px;">
                         <p style="margin:0;color:#4a6a82;font-size:12px;
                                    text-transform:uppercase;letter-spacing:1px;">
-                          Comptes facturés
+                          Clients facturés
                         </p>
                         <p style="margin:4px 0 0;color:#2D5478;font-size:28px;
                                    font-weight:bold;">

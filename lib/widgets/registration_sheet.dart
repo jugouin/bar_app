@@ -4,7 +4,6 @@ import 'package:bar_app/screens/event_webview_screen.dart';
 import '../models/helloasso_event.dart';
 import '../services/helloasso_service.dart';
 
-
 class RegistrationSheet extends StatefulWidget {
   final HelloAssoEvent event;
   final HelloAssoService service;
@@ -27,25 +26,22 @@ class _RegistrationSheetState extends State<RegistrationSheet> {
 
   Future<void> _inscrire() async {
     setState(() => _loading = true);
-        try {
+    try {
       final url = await widget.service.createCheckout(widget.event);
       if (!mounted) return;
 
       Navigator.pop(context);
 
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => EventWebViewScreen(
-          eventUrl:   url,
-          eventTitle: widget.event.title,
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              EventWebViewScreen(eventUrl: url, eventTitle: widget.event.title),
         ),
-      ));
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur : $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -63,7 +59,11 @@ class _RegistrationSheetState extends State<RegistrationSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-          24, 16, 24, MediaQuery.of(context).viewInsets.bottom + 32),
+        24,
+        16,
+        24,
+        MediaQuery.of(context).viewInsets.bottom + 32,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,7 +74,7 @@ class _RegistrationSheetState extends State<RegistrationSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: _blue.withOpacity(0.2),
+                color: _blue.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -117,10 +117,7 @@ class _RegistrationSheetState extends State<RegistrationSheet> {
           // Horaire (optionnel)
           if (event.horaire != null) ...[
             const SizedBox(height: 8),
-            EventInfoRow(
-              icon: Icons.access_time,
-              label: event.horaire!,
-            ),
+            EventInfoRow(icon: Icons.access_time, label: event.horaire!),
           ],
           const SizedBox(height: 28),
 
@@ -134,18 +131,22 @@ class _RegistrationSheetState extends State<RegistrationSheet> {
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2),
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
                     )
                   : const Icon(Icons.how_to_reg_outlined, size: 18),
               label: Text(
                 _loading ? "Redirection vers HelloAsso..." : "S'inscrire",
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 15),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _blue,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: _blue.withOpacity(0.5),
+                disabledBackgroundColor: _blue.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -183,8 +184,9 @@ class EventInfoRow extends StatelessWidget {
           style: TextStyle(
             color: labelColor ?? const Color(0xFF2D5478),
             fontSize: 14,
-            fontWeight:
-                labelColor != null ? FontWeight.w600 : FontWeight.normal,
+            fontWeight: labelColor != null
+                ? FontWeight.w600
+                : FontWeight.normal,
           ),
         ),
       ],

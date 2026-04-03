@@ -7,6 +7,7 @@ class StyledTextField extends StatelessWidget {
   final bool obscure;
   final VoidCallback? onToggleObscure;
   final TextInputType keyboardType;
+  final String? Function(String?)? validator;
 
   const StyledTextField({
     super.key,
@@ -16,15 +17,17 @@ class StyledTextField extends StatelessWidget {
     this.obscure = false,
     this.onToggleObscure,
     this.keyboardType = TextInputType.text,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: obscure,
       keyboardType: keyboardType,
       style: const TextStyle(color: Color(0xFF2D5478)),
+      validator: validator,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Color(0xFF2D5478)),

@@ -1,4 +1,6 @@
 import 'package:bar_app/screens/login_screen.dart';
+import 'package:bar_app/utils/firebase_error.dart';
+import 'package:bar_app/utils/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/styled_text_field.dart';
@@ -11,10 +13,11 @@ class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  RegisterScreenState createState() => RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _displayFirstNameController = TextEditingController();
   final _displayLastNameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -54,7 +57,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20.0),
-          child: Column(
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Avatar
@@ -78,18 +84,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _displayFirstNameController,
                 label: "Prénom",
                 icon: Icons.person,
+                validator: (value) => Validators.required(value, field: "Le prénom"),
               ),
               const SizedBox(height: 10),
               StyledTextField(
                 controller: _displayLastNameController,
                 label: "Nom",
                 icon: Icons.person,
+                validator: (value) => Validators.required(value, field: "Le nom"),
+
               ),
               const SizedBox(height: 10),
               StyledTextField(
                 controller: _emailController,
                 label: "E-mail",
                 icon: Icons.email,
+                validator: Validators.email,
                 keyboardType: TextInputType.emailAddress,
               ),
 
@@ -101,6 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _passwordController,
                 label: "Mot de passe",
                 icon: Icons.lock,
+                validator: Validators.password,
                 obscure: _obscurePassword,
                 onToggleObscure: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
@@ -110,6 +121,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _confirmPasswordController,
                 label: "Confirmer le mot de passe",
                 icon: Icons.lock_outline,
+                validator: (value) => Validators.confirmPassword(value, _passwordController.text),
                 obscure: _obscureConfirm,
                 onToggleObscure: () =>
                     setState(() => _obscureConfirm = !_obscureConfirm),
@@ -126,6 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -161,84 +174,77 @@ Future<void> register() async {
     });
 
     await FirebaseAuth.instance.signOut();
+    if (!mounted) return;
 
-    if (context.mounted) {
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(
-            children: [
-              Icon(Icons.mark_email_unread_outlined, color: Color(0xFF2D5478)),
-              SizedBox(width: 8),
-              Text(
-                "Vérifiez votre email",
-                style: TextStyle(
-                  color: Color(0xFF2D5478),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.mark_email_unread_outlined, color: Color(0xFF2D5478)),
+            SizedBox(width: 8),
+            Text(
+              "Vérifiez votre email",
+              style: TextStyle(
+                color: Color(0xFF2D5478),
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Un email de confirmation a été envoyé à :",
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _emailController.text.trim(),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2D5478),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                "Cliquez sur le lien dans l'email pour activer votre compte, puis connectez-vous.",
-                style: TextStyle(fontSize: 13),
-              ),
-            ],
-          ),
-          actions: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2D5478),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text("Compris"),
             ),
           ],
         ),
-      );
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Un email de confirmation a été envoyé à :",
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _emailController.text.trim(),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2D5478),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Cliquez sur le lien dans l'email pour activer votre compte, puis connectez-vous.",
+              style: TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2D5478),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Compris"),
+          ),
+        ],
+      ),
+    );
 
-      if (context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      }
-    }
+  if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   } on FirebaseAuthException catch (e) {
-    final msg = switch (e.code) {
-      'weak-password'        => "Le mot de passe est trop faible.",
-      'invalid-email'        => "E-mail invalide.",
-      'email-already-in-use' => "Un compte avec cet e-mail existe déjà.",
-      _                      => "Erreur d'inscription : ${e.message}",
-    };
+    final msg = FirebaseErrors.getMessage(e.code);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-    } finally {
-      setState(() => _loading = false);
+  } finally {
+    setState(() => _loading = false);
     }
   }
 }

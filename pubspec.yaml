@@ -46,6 +46,7 @@ dependencies:
   url_launcher: ^6.3.0
   app_links: ^6.0.0
   webview_flutter: ^4.10.0
+  http: ^1.0.0
 
 
 dev_dependencies:

@@ -40,7 +40,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     if (product == null) return;
 
     setState(() => _isScanning = false);
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 6), () {
       if (mounted) setState(() => _isScanning = true);
     });
 
@@ -215,9 +215,11 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         ),
       );
 
+      if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
 
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Erreur lors de la validation de la commande")),
       );

@@ -20,15 +20,15 @@ export async function runMonthlyBilling(): Promise<void> {
 
   // Période : mois précédent
   const now = new Date();
-  const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const start = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
-  const end = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 1);
-  const monthKey = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, "0")}`;
-  const monthLabel = prevMonth.toLocaleString("fr-FR", {
-    month: "long",
-    year: "numeric",
-  });
-  const year = String(prevMonth.getFullYear());
+  const year  = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+  const month = now.getMonth() === 0 ? 11 : now.getMonth() - 1; // 0-indexed
+
+  const start = new Date(year, month, 1);         // 1er mars 00:00 local
+  const end   = new Date(year, month + 1, 1);     // 1er avril 00:00 local
+
+  const monthKey   = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const monthLabel = start.toLocaleString("fr-FR", { month: "long", year: "numeric" });
+
 
   console.log(`[monthlyBilling] Démarrage — ${monthLabel}`);
   console.log(
@@ -153,7 +153,7 @@ export async function runMonthlyBilling(): Promise<void> {
         monthLabel,
         total: user.total,
         checkoutUrl: deepLink,
-        year,
+        year: String(year),
       });
       console.log(`[Email] OK pour ${user.email}`);
 
