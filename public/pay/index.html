@@ -58,8 +58,7 @@
     const invoiceId = params.get('invoiceId');
 
     if (invoiceId) {
-      // Construire le deep link cve://pay?invoiceId=xxx
-      const deepLink = `cve://pay?invoiceId=${invoiceId}`;
+      const deepLink = `https://cve-bar.web.app/pay?invoiceId=${invoiceId}`;
       document.getElementById('pay-btn').href = deepLink;
 
       // Tenter l'ouverture automatique après 500ms
