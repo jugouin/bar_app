@@ -23,7 +23,7 @@ Vous contacter si nécessaire
 Exécution du contrat : la gestion de votre compte est nécessaire au service
 
 6. Partage des données
-Vos données ne sont partagées avec aucun service tiers. Elles ne sont ni vendues ni transmises à des partenaires.
+Vos données sont hébergées sur les serveurs de Firebase (Google LLC), utilisé comme infrastructure technique de stockage et d'authentification. Firebase agit en tant que sous-traitant et ne peut pas utiliser vos données à d'autres fins. Pour en savoir plus : Politique de confidentialité de Google
 
 7. Conservation
 Vos données sont conservées tant que votre compte est actif. En cas de suppression, elles sont effacées sous 30 jours.

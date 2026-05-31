@@ -5,12 +5,18 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'firebase_options.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+  ));
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -39,18 +45,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _initDeepLinks() {
-    // App lancée depuis un lien (était fermée)
     _appLinks.getInitialLink().then(_handleDeepLink);
 
-    // Lien reçu pendant que l'app tourne
     _appLinks.uriLinkStream.listen(_handleDeepLink);
   }
 
   Future<void> _handleDeepLink(Uri? uri) async {
     if (uri == null) return;
 
-    // https://votredomaine.com/pay?invoiceId=abc123
-    // cve://pay?invoiceId=abc123
     final invoiceId = uri.queryParameters['invoiceId'];
     if (invoiceId == null) return;
 
@@ -70,6 +72,7 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromRGBO(192, 227, 241, 1),
         ),
+        useMaterial3: true,
       ),
       home: const AuthGate(),
       debugShowCheckedModeBanner: false,
